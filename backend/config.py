@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config():
-    DEBUG = False
-    SQL_ALCHEMY_TRACK_MODIFICATIONS = False 
+    DEBUG = True
+    SQLALCHEMY_TRACK_MODIFICATIONS = False 
 
 class LocalDevelopmentConfig(Config):
     DEBUG = True

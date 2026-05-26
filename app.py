@@ -1,24 +1,29 @@
-from flask import Flask 
+from flask import Flask, jsonify, render_template
 from backend.config import LocalDevelopmentConfig
 from backend.database import db  # Import from database.py
 from backend.models import Admin, Student, Company, PlacementDrive, Application
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, JWTManager
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash
-import jsonify
 from datetime import datetime
-from backend.routes import *
+from backend.routes import auth_bp
 
 jwt = JWTManager()
 
 def createApp():
-    app = Flask(__name__)
+    # Change "../frontend" to just "frontend"
+    app = Flask(__name__, template_folder="frontend", static_folder="frontend")
     app.config.from_object(LocalDevelopmentConfig)
     db.init_app(app)
     jwt.init_app(app)
     CORS(app)
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
+
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def serve_vue(path):
+        return render_template("index.html")
     
     return app 
 
@@ -35,9 +40,7 @@ with app.app_context():
         db.session.add(admin)
         db.session.commit()
 
-@app.get('/')
-def home():
-    return '<h1> Flask App - Running successfully </h1>'
+
 
 @app.route('/api/protected', methods=['GET'])
 @jwt_required()
@@ -47,4 +50,4 @@ def protected():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

@@ -1,0 +1,45 @@
+{% extends 'templates/base.html' %}
+
+{% block title %}
+    PDMS - Login 
+{% endblock %}
+
+{% block content %}
+<div id="login-app" class="row justify-content-center">
+    <div class="col-md-6">
+        <h1 class="mb-4">Login</h1> 
+
+        <div v-if="errorMessage" class="alert alert-danger" role="alert">
+            [[ errorMessage ]]
+        </div>
+
+        <form @submit.prevent="handleLogin">
+            
+            <div class="mb-3">
+                <label class="form-label">Role:</label>
+                <select v-model="role" class="form-select" required>
+                    <option value="student">Student</option>
+                    <option value="company">Company</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="username" class="form-label">Username (Email):</label>
+                <input type="email" id="username" v-model="email" class="form-control" required>
+            </div>
+
+            <div class="form-group mb-4">
+                <label for="password" class="form-label">Password:</label>
+                <input type="password" id="password" v-model="password" class="form-control" required>
+            </div>
+
+            <input type="submit" class="btn btn-primary w-100" value="Login">
+        </form> 
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='static/login.js') }}"></script>
+{% endblock %}

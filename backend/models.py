@@ -51,7 +51,7 @@ class PlacementDrive(db.Model):
     job_description = db.Column(db.String(1050), nullable=False)
     salary_range = db.Column(db.String(100), nullable=False)
     key_skills = db.Column(db.String(250), nullable=False)
-    status = db.Column(db.String(50), nullable=False, default='pending')
+    status = db.Column(db.String(50), nullable=False, default='inactive')
     is_approved = db.Column(db.Boolean, default=False)
 
     application = db.relationship('Application', backref='placement_drive', lazy=True)
