@@ -10,32 +10,38 @@ admin_bp = Blueprint('admin_bp', __name__)
 company_bp = Blueprint('company_bp', __name__)
 student_bp = Blueprint('student_bp', __name__)
 
-@auth_bp.route("/login/<role>", methods=["POST"])
+#login api route for all users + the page routing for login page
+@auth_bp.route("/login/<role>", methods=["GET", "POST"])
 def login(role):
-
-    data = request.get_json()
-    email = data.get("email", None)
-    password = data.get("password", None)
-
-    if role == "admin":
-        user = Admin.query.filter_by(email=email).first()
-    elif role == "student":
-        user = Student.query.filter_by(email=email).first()
-    elif role == "company":
-        user = Company.query.filter_by(email=email).first()
-    else:
-        return jsonify("Invalid role!"), 400
-
-    if user and check_password_hash(user.password_hash, password):
-        access_token = create_access_token(identity=str(user.id), additional_claims={'role': role})
-        return jsonify(access_token=access_token), 200
+    if request.method == "GET":
+        return render_template("templates/login.html")
     
-    return jsonify({'error': 'Invalid credentials'}), 401
+    if request.method == "POST":
 
-@auth_bp.route("/login")
-def login_page():
-    return render_template("templates/login.html")
+        data = request.get_json()
+        email = data.get("email", None)
+        password = data.get("password", None)
 
+        if role == "admin":
+            user = Admin.query.filter_by(email=email).first()
+        elif role == "student":
+            user = Student.query.filter_by(email=email).first()
+        elif role == "company":
+            user = Company.query.filter_by(email=email).first()
+        else:
+            return jsonify("Invalid role!"), 400
+
+        if user and check_password_hash(user.password_hash, password):
+            display_name = getattr(user, 'full_name', getattr(user, 'company_name', role.capitalize()))
+            access_token = create_access_token(identity=str(user.id), additional_claims={'role': role})
+            return jsonify({
+                "access_token": access_token,
+                "role": role,
+                "name": display_name
+            }), 200
+        return jsonify({'error': 'Invalid credentials'}), 401
+
+#sign up api route
 @auth_bp.route("/signup/<role>", methods=["POST"])
 def signup(role):
     if role == "admin":
@@ -91,7 +97,7 @@ def signup(role):
 
     return jsonify({'message': f'{role.capitalize()} registered successfully'}), 201
 
-
+#profile api route for users 
 @auth_bp.route("/profile/<int:user_id>", methods=["GET", "PUT"])
 @jwt_required()
 def profile(user_id):
@@ -139,25 +145,48 @@ def profile(user_id):
 
     return jsonify(user_data), 200
 
-@admin_bp.route('/admin/dashboard')
-@jwt_required()
+#admin dashboard api route
+@admin_bp.route('/dashboard', methods=['GET', 'POST'])
 def admin_dashboard():
-    claims = get_jwt()
-    if claims.get('role') != 'admin':
-        return jsonify({'error': "Unauthorized access"}), 403
+    if request.method == 'GET':
+        return render_template('templates/admin/dashboard.html')
     
-    active_companies = Company.query.filter_by(status='active').order_by(Company.id.asc()).limit(2).all()
-    requested_companies = Company.query.filter_by(status='inactive').order_by(Company.id.asc()).limit(2).all()
-    students = Student.query.filter_by(is_active=True).order_by(Student.id.asc()).limit(2).all() 
-    placements = PlacementDrive.query.filter_by(status='active').order_by(PlacementDrive.id.asc()).limit(2).all()
+    if request.method == 'POST':
+        try:
+            from flask_jwt_extended import verify_jwt_in_request
+            verify_jwt_in_request()
+            
+            claims = get_jwt()
+            if claims.get('role') != 'admin':
+                return jsonify({'error': "Unauthorized administration access"}), 403
+    
+            active_companies = Company.query.filter_by(status='active').order_by(Company.id.asc()).limit(2).all()
+            requested_companies = Company.query.filter_by(status='inactive').order_by(Company.id.asc()).limit(2).all()
+            students = Student.query.filter_by(is_active=True).order_by(Student.id.asc()).limit(2).all() 
+            placements = PlacementDrive.query.filter_by(status='active').order_by(PlacementDrive.id.asc()).limit(2).all()
 
-    return jsonify({
-        'active_companies': [{'id': c.id, 'company_name': c.company_name} for c in active_companies],
-        'requested_companies': [{'id': c.id, 'company_name': c.company_name} for c in requested_companies],
-        'students': [{'id': s.id, 'full_name': s.full_name} for s in students],
-        'placements': [{'id': p.id, 'job_title': p.job_title} for p in placements]
-    }), 200
+            return jsonify({
+                'active_companies': [
+                    {'id': c.id, 'company_name': c.company_name, 'full_name': c.full_name, 'status': c.status} 
+                    for c in active_companies
+                ],
+                'requested_companies': [
+                    {'id': c.id, 'company_name': c.company_name, 'full_name': c.full_name, 'status': c.status} 
+                    for c in requested_companies
+                ],
+                'students': [
+                    {'id': s.id, 'full_name': s.full_name, 'email': s.email, 'is_active': s.is_active} 
+                    for s in students
+                ],
+                'placements': [
+                    {'id': p.id, 'company_name': p.company.company_name, 'drive_date': str(p.drive_date), 'drive_end_date': str(p.drive_end_date), 'job_title': p.job_title, 'status': p.status} 
+                    for p in placements
+                ]
+            }), 200
+        except Exception as e:
+                return jsonify({'error': 'Missing or invalid token reference', 'details': str(e)}), 401
 
+#page to view all companies for admin
 @admin_bp.route('/admin/companies')
 @jwt_required()
 def admin_companies():
@@ -174,7 +203,9 @@ def admin_companies():
         'is_blacklisted': c.is_blacklisted
     } for c in companies]), 200
 
-@company_bp.route('/company/dashboard')
+
+#company dashboard api route
+@company_bp.route('/company/dashboard', methods=['GET'])
 @jwt_required()
 def company_dashboard():
     claims = get_jwt()
@@ -213,6 +244,7 @@ def company_dashboard():
         } for p in inactive_placements]
     }), 200
 
+#common view drive page api route for companies and admin 
 @admin_bp.route('/admin/view-drive/<int:drive_id>')
 @company_bp.route('/company/view-drive/<int:drive_id>')
 @jwt_required()
@@ -246,3 +278,87 @@ def view_drive(drive_id):
             'status': a.status
         } for a in applications]
     }), 200
+
+#common api route for admin and company to review student application details
+@company_bp.route('/company/applications/review/<int:application_id>', methods=['GET'])
+@admin_bp.route('/api/applications/review/<int:application_id>', methods=['GET'])
+@jwt_required()
+def review_student_application(application_id):
+    current_user_id = get_jwt_identity()
+    claims = get_jwt()
+    role = claims.get('role')
+
+    if role not in ['admin', 'company']:
+        return jsonify({'error': 'Unauthorized access.'}), 403
+
+    application = db.session.get(Application, application_id)
+    if not application:
+        return jsonify({'error': 'Application not found'}), 404
+    
+    drive = db.session.get(PlacementDrive, application.placement_drive_id)
+    if not drive:
+        return jsonify({'error': 'Placement drive not found'}), 404
+
+    if role == 'company' and str(drive.company_id) != str(current_user_id):
+        return jsonify({'error': 'Unauthorized to view this application.'}), 403
+    
+    student = db.session.get(Student, application.student_id)
+    if not student:
+        return jsonify({'error': 'Student record not found'}), 404
+
+    return jsonify({
+        'id': application.id,                             
+        'student_name': getattr(student, 'full_name', ''), 
+        'department': getattr(student, 'department', ''),  
+        'resume_url': getattr(student, 'resume', ''),      
+        'date': application.date.isoformat() if hasattr(application, 'date') and application.date else '2026-03-24' # Column 5: Date
+    }), 200
+
+#api route for companies and admin to change student status for a placement drive 
+@company_bp.route('/company/change_student_application_status/<int:id>', methods=['POST'])
+@admin_bp.route('/admin/change_student_application_status/<int:id>', methods=['POST'])
+@jwt_required()
+def change_student_application_status(id):
+    current_user_id = get_jwt_identity()
+    claims = get_jwt()
+    role = claims.get('role')
+
+    if role == "student":
+        return jsonify({'error': 'Unauthorized access.'}), 403
+    
+    application = db.session.get(Application, id)
+    data = request.get_json()
+    new_status = data.get('status')
+    new_status = new_status.lower().strip()
+
+    if not application:
+        return jsonify({'error': 'Application not found'}), 404
+    
+    if role == "company":
+        drive = db.session.get(PlacementDrive, application.placement_drive_id)
+        if not drive:
+            return jsonify({'error': 'Placement drive not found'}), 404
+                
+        company_allowed_options = ['shortlisted', 'interview complete', 'offer', 'rejected']
+
+        if new_status not in company_allowed_options:
+            return jsonify({'error': f'Companies can only transition status to: {", ".join(company_allowed_options)}'}), 400
+        
+        if new_status == 'interview complete' and application.status.lower() != 'shortlisted':
+            return jsonify({'error': 'Cannot mark as Interview Complete unless the student is first Shortlisted.'}), 400
+
+    elif role == 'admin':
+
+        admin_allowed_options = ['shortlisted', 'interview complete', 'offer', 'rejected', 'inactive', 'placed']
+        if new_status not in admin_allowed_options:
+            return jsonify({'error': f'Admin can only transition status to: {", ".join(admin_allowed_options)}'}), 400
+
+    application.status = new_status
+    db.session.commit()
+
+    return jsonify({
+        'message': f'Application status successfully updated to {new_status}!',
+        'application_id': application.id,
+        'current_status': application.status
+    }), 200
+

@@ -6,7 +6,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash
 from datetime import datetime
-from backend.routes import auth_bp
+from backend.routes import auth_bp, student_bp, company_bp, admin_bp
 
 jwt = JWTManager()
 
@@ -19,6 +19,9 @@ def createApp():
     CORS(app)
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    app.register_blueprint(student_bp, url_prefix="/api/student")
+    app.register_blueprint(company_bp, url_prefix="/api/company")
+    app.register_blueprint(admin_bp, url_prefix="/api/admin")
 
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')

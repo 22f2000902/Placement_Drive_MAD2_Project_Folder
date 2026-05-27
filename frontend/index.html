@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Home Page{% endblock %}
+
+{% block content %}
+<div id="home-app">
+    <h2 align="center" class="display-5"> Welcome to Placement Portal </h2>  
+    <hr> 
+
+    <div v-if="!isLoggedIn">
+        <h2 align="center" class="display-6"> 
+            <p class="bg-info-subtle text-info-emphasis p-3 rounded"> Please Login to access the portal </p> 
+            <div> 
+                <a class="btn btn-outline-primary" href="/api/auth/login/student"> Student </a>
+                <a class="btn btn-outline-info" href="/api/auth/login/company"> Company </a>
+                <a class="btn btn-outline-danger" href="/api/auth/login/admin"> Admin </a>
+            </div>
+        </h2>
+        
+        <hr>
+
+        <h2 align="center" class="display-6"> 
+            <p class="bg-warning-subtle text-warning-emphasis p-3 rounded"> Please Register to access the portal </p>
+            <div> 
+                <a class="btn btn-outline-primary" href="/api/auth/signup/student"> Student </a>
+                <a class="btn btn-outline-info" href="/api/auth/signup/company"> Company </a>
+            </div>
+        </h2>
+    </div>
+
+    <div v-else :class="{'d-block': isLoggedIn}" class="d-none">
+        <h2 align="center" class="display-6"> 
+            <p class="bg-success-subtle text-success-emphasis p-3 rounded"> Welcome back, [[ userName ]]! </p> 
+            <a class="btn btn-success" :href="'/api/' + userRole + '/dashboard'"> Go to Dashboard </a>
+        </h2>
+    </div>
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="/static/index.js"></script>
+
+{% endblock %}
