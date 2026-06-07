@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Student List Dashboard - PDMS
+{% endblock %}
+
+{% block content %}
+<div id="student-list-dashboard-app" class="container mt-4"> 
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 align="center" class="display-5"> <p class="text-primary-emphasis"> Student List Dashboard </p></h2> 
+    </div>
+
+    <table name="student" class="table table-bordered table-hover mb-5"> 
+        <thead class="table-dark"> 
+            <tr> 
+                <th scope="col"> ID </th>
+                <th scope="col"> Full Name </th>
+                <th scope="col"> Roll Number </th>
+                <th scope="col"> Department </th>
+                <th scope="col"> Status </th>
+                <th scope="col"> Actions </th>
+            </tr>
+        </thead> 
+        <tbody> 
+            <tr v-for="student in students" :key="student.id"> 
+                <td> [[ student.id ]] </td>
+                <td> [[ student.full_name ? student.full_name : 'N/A' ]] </td>
+                <td> [[ student.roll_number ]] </td>
+                <td> [[ student.department ]] </td>
+                <td> 
+                    <a :href="'/api/admin/students/' + student.id + '/status'" class="btn btn-primary btn-sm"> Change Status </a>   
+                </td> 
+            </tr>
+        </tbody> 
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="/frontend/static/student_list.js"></script>
+{% endblock %}

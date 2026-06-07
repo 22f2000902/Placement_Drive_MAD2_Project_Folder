@@ -32,7 +32,7 @@
     <table name="company" class="table table-bordered table-hover mb-5"> 
     <thead class="table-dark"> 
         <tr> 
-            <th scope="col"> ID </th>
+            <th scope="col"> ID </th> 
             <th scope="col"> HR Name </th>
             <th scope="col"> Company Name </th>
             <th scope="col"> Status </th>
@@ -46,7 +46,7 @@
             <td> [[ company.company_name ]] </td>
             <td> [[ company.status ]] </td>
             <td> 
-                <a :href="'/api/admin/companies/' + company.id + '/status'" class="btn btn-primary btn-sm"> Change Status </a>   
+                <a :href="'/api/admin/change_company_status/' + company.id" class="btn btn-primary btn-sm"> Change Status </a>   
             </td> 
         </tr>
         <tr v-if="requestedCompanies.length === 0">
@@ -77,7 +77,7 @@
                 <td> [[ company.status ]] </td>
                 <td> 
                     <a :href="'/api/admin/companies/' + company.id + '/drives'" class="btn btn-outline-primary btn-sm me-1"> View Drives </a>
-                    <a :href="'/api/admin/companies/' + company.id + '/status'" class="btn btn-primary btn-sm"> Change Status </a>   
+                    <a :href="'/api/admin/change_company_status/' + company.id" class="btn btn-primary btn-sm"> Change Status </a>   
                 </td> 
             </tr>
             <tr v-if="activeCompanies.length === 0">

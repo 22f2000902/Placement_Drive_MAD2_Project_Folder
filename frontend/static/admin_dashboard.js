@@ -37,7 +37,7 @@ createApp({
                 // Post mapping targets unified routing switchboard context
                 const response = await fetch('/api/admin/dashboard', {
                     method: 'POST', 
-                    headers: {
+                    headers: { 
                         'Authorization': `Bearer ${this.token}`,
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'

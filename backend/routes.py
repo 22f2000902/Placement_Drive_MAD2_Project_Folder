@@ -4,6 +4,7 @@ from flask_jwt_extended import create_access_token,current_user, get_jwt,jwt_req
 from datetime import datetime,timezone
 from werkzeug.security import check_password_hash, generate_password_hash
 from backend.database import db     
+from flask_jwt_extended import verify_jwt_in_request
 
 auth_bp = Blueprint('auth_bp', __name__)
 admin_bp = Blueprint('admin_bp', __name__)
@@ -42,60 +43,64 @@ def login(role):
         return jsonify({'error': 'Invalid credentials'}), 401
 
 #sign up api route
-@auth_bp.route("/signup/<role>", methods=["POST"])
+@auth_bp.route("/signup/<role>", methods=["GET", "POST"])
 def signup(role):
-    if role == "admin":
-        return jsonify({'error': 'Admin registration is not allowed'}), 403
-    
-    data = request.get_json()
-    
-    email = data.get("email", None)
-    password = data.get("password", None)
-    confirm_password = data.get("confirm_password", None)
+    if request.method == "GET":
+        return render_template("templates/signup.html")
 
-    if not email or not password or not confirm_password:
-        return jsonify({'error': 'Email, password and confirm password are required'}), 400
-    
-    if password != confirm_password:
-        return jsonify({'error': 'Passwords do not match'}), 400
-
-    password_hash = generate_password_hash(password)
-    
-    if role == "student": 
-        roll_number = data.get("roll_number", None)
-        department = data.get("department", None)
-        full_name = data.get("full_name", None)
-        phone_number = data.get("phone_number", None)
-
-        if not roll_number or not department or not full_name or not phone_number:
-            return jsonify({'error': 'All fields are required for student registration'}), 400
+    if request.method == "POST": 
+        if role == "admin":
+            return jsonify({'error': 'Admin registration is not allowed'}), 403
         
-        if Student.query.filter_by(email=email).first() or Student.query.filter_by(roll_number=roll_number).first():
-            return jsonify({'error': 'Email or roll number already exists'}), 400
+        data = request.get_json()
         
-        new_student = Student(email=email, password_hash=password_hash, roll_number=roll_number, department=department, full_name=full_name, phone_number=phone_number)
+        email = data.get("email", None)
+        password = data.get("password", None)
+        confirm_password = data.get("confirm_password", None)
 
-        db.session.add(new_student)
-        db.session.commit()
-
-    if role == "company":
-        full_name = data.get("full_name", None)
-        phone_number = data.get("phone_number", None)
-        company_name = data.get("company_name", None)
-        about_company = data.get("about_company", None)
-
-        if not full_name or not phone_number or not company_name or not about_company:
-            return jsonify({'error': 'All fields are required for company registration'}), 400
+        if not email or not password or not confirm_password:
+            return jsonify({'error': 'Email, password and confirm password are required'}), 400
         
-        if Company.query.filter_by(email=email).first():
-            return jsonify({'error': 'Email already exists'}), 400
+        if password != confirm_password:
+            return jsonify({'error': 'Passwords do not match'}), 400
+
+        password_hash = generate_password_hash(password)
         
-        new_company = Company(email=email, password_hash=password_hash, full_name=full_name, phone_number=phone_number, company_name=company_name, about_company=about_company)
+        if role == "student": 
+            roll_number = data.get("roll_number", None)
+            department = data.get("department", None)
+            full_name = data.get("full_name", None)
+            phone_number = data.get("phone_number", None)
 
-        db.session.add(new_company)
-        db.session.commit()
+            if not roll_number or not department or not full_name or not phone_number:
+                return jsonify({'error': 'All fields are required for student registration'}), 400
+            
+            if Student.query.filter_by(email=email).first() or Student.query.filter_by(roll_number=roll_number).first():
+                return jsonify({'error': 'Email or roll number already exists'}), 400
+            
+            new_student = Student(email=email, password_hash=password_hash, roll_number=roll_number, department=department, full_name=full_name, phone_number=phone_number)
 
-    return jsonify({'message': f'{role.capitalize()} registered successfully'}), 201
+            db.session.add(new_student)
+            db.session.commit()
+
+        if role == "company":
+            full_name = data.get("full_name", None)
+            phone_number = data.get("phone_number", None)
+            company_name = data.get("company_name", None)
+            about_company = data.get("about_company", None)
+
+            if not full_name or not phone_number or not company_name or not about_company:
+                return jsonify({'error': 'All fields are required for company registration'}), 400
+            
+            if Company.query.filter_by(email=email).first():
+                return jsonify({'error': 'Email already exists'}), 400
+            
+            new_company = Company(email=email, password_hash=password_hash, full_name=full_name, phone_number=phone_number, company_name=company_name, about_company=about_company)
+
+            db.session.add(new_company)
+            db.session.commit()
+
+        return jsonify({'message': f'{role.capitalize()} registered successfully'}), 201
 
 #profile api route for users 
 @auth_bp.route("/profile/<int:user_id>", methods=["GET", "PUT"])
@@ -161,7 +166,7 @@ def admin_dashboard():
                 return jsonify({'error': "Unauthorized administration access"}), 403
     
             active_companies = Company.query.filter_by(status='active').order_by(Company.id.asc()).limit(2).all()
-            requested_companies = Company.query.filter_by(status='inactive').order_by(Company.id.asc()).limit(2).all()
+            requested_companies = Company.query.filter(Company.status.in_(['pending', 'inactive'])).order_by(Company.id.asc()).limit(2).all()
             students = Student.query.filter_by(is_active=True).order_by(Student.id.asc()).limit(2).all() 
             placements = PlacementDrive.query.filter_by(status='active').order_by(PlacementDrive.id.asc()).limit(2).all()
 
@@ -187,22 +192,106 @@ def admin_dashboard():
                 return jsonify({'error': 'Missing or invalid token reference', 'details': str(e)}), 401
 
 #page to view all companies for admin
-@admin_bp.route('/admin/companies')
-@jwt_required()
+@admin_bp.route('/companies', methods=['GET', 'POST'])
 def admin_companies():
-    claims = get_jwt()
-    if claims.get('role') != 'admin':
-        return jsonify({'error': "Unauthorized access"}), 403
-    
-    companies = Company.query.order_by(Company.id.asc()).all()
-    return jsonify([{
-        'id': c.id,
-        'company_name': c.company_name,
-        'email': c.email,
-        'status': c.status,
-        'is_blacklisted': c.is_blacklisted
-    } for c in companies]), 200
 
+    # Render HTML page
+    if request.method == 'GET':
+        return render_template('templates/admin/company.html')
+
+    # API data route
+    if request.method == 'POST':
+
+        verify_jwt_in_request()
+
+        claims = get_jwt()
+
+        if claims.get('role') != 'admin':
+            return jsonify({'error': "Unauthorized access"}), 403
+
+        companies = Company.query.order_by(Company.id.asc()).all()
+
+        return jsonify({
+            'companies': [
+                {
+                    'id': c.id,
+                    'company_name': c.company_name,
+                    'email': c.email,
+                    'status': c.status,
+                    'is_blacklisted': c.is_blacklisted
+                }
+                for c in companies
+            ]
+        }), 200
+
+@admin_bp.route('/students', methods=['GET', 'POST'])
+def admin_students():
+    if request.method == 'GET':
+        return render_template('templates/admin/students_list.html')
+    if request.method == 'POST':
+        verify_jwt_in_request()
+
+        claims = get_jwt()
+
+        if claims.get('role') != 'admin':
+            return jsonify({'error': "Unauthorized access"}), 403
+        
+        students = Student.query.order_by(Student.id.asc()).all()
+
+        return jsonify({
+            'students': [
+                {
+                   'id': s.id,
+                   'full_name': s.full_name,
+                   'roll_number': s.roll_number,
+                   'department': s.department,
+                   'status': 'Active' if s.is_active else 'Inactive',
+                   'resume_path': s.resume_path
+                } for s in students
+            ]
+        }), 200
+
+@admin_bp.route('/change_company_status/<int:company_id>', methods=['GET', 'POST'])
+def change_company_status(company_id):
+    if request.method == "GET":
+        company = Company.query.get(company_id)
+
+        return render_template(
+            'templates/admin/change_company_status.html',
+            company_id=company.id,
+            company_name=company.company_name,
+            company_status=company.status,
+            full_name=company.full_name,
+            about_company=company.about_company
+        )
+    if request.method == "POST":
+        verify_jwt_in_request()
+
+        claims = get_jwt()
+
+        if claims.get('role') != 'admin':
+            return jsonify({'error': "Unauthorized access"}), 403
+        
+        company = Company.query.get(company_id)
+        if not company:
+            return jsonify({'error': 'Company not found'}), 404
+        
+        data = request.get_json()
+        new_status = data.get('status')
+        new_status = new_status.lower().strip()
+
+        allowed_statuses = ['active', 'inactive', 'pending', 'blacklisted']
+        if new_status not in allowed_statuses:
+            return jsonify({'error': f'Status must be one of: {", ".join(allowed_statuses)}'}), 400
+        
+        company.status = new_status
+        db.session.commit()
+
+        return jsonify({
+            'message': f'Company status successfully updated to {new_status}!',
+            'company_id': company.id,
+            'current_status': company.status
+        }), 200   
 
 #company dashboard api route
 @company_bp.route('/company/dashboard', methods=['GET'])
@@ -214,7 +303,7 @@ def company_dashboard():
     
     company_id = get_jwt_identity()
     active_placements = PlacementDrive.query.filter_by(company_id=company_id, status='active').order_by(PlacementDrive.id.asc()).all()
-    inactive_placements = PlacementDrive.query.filter_by(company_id=company_id, status='inactive').order_by(PlacementDrive.id.asc()).all()
+    inactive_placements = PlacementDrive.query.filter_by(company_id=company_id, status= 'inactive').order_by(PlacementDrive.id.asc()).all()
 
     return jsonify({
         'active_placements': [{

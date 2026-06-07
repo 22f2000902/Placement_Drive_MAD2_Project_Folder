@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    PDMS - Signup 
+{% endblock %}
+
+{% block content %}
+<div id="signup-app" class="container mt-5">
+    <div class="col-md-6">
+        <h1 class="mb-4">Signup</h1> 
+
+        <div v-if="roleAdmin" class="alert alert-danger" role="alert">
+            [[ errorMessage ]]
+        </div>
+
+        <form @submit.prevent="handleSignup">
+
+            <div class="form-group">
+                <label for="name" class="form-label">Name:</label>
+                <input type="text" id="name" v-model="name" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="username" class="form-label">Username (Email):</label>
+                <input type="email" id="username" v-model="email" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password:</label>
+                <input type="password" id="password" v-model="password" class="form-control" required><br><br> 
+            </div>
+
+            <div class = "form-group">
+                <label for = "confirm_password">Confirm Password:</label>
+                    <input type="password" id="confirm_password" v-model="confirm_password" class = "form-control" required><br><br>
+            </div>
+
+            <div class = "form-group">
+                <label for = "phone_number">Phone Number:</label>
+                <input type="text" id="phone_number" v-model="phone_number" class = "form-control" required><br><br>
+            </div>
+
+            <div v-if="roleCompany" class="form-group">
+                <div class = "form-group">
+                    <label for="company_name">Company Name:</label> 
+                    <input type="text" id="company_name" v-model="company_name" class = "form-control" required><br><br>
+                </div>
+
+                <div class = "form-group">
+                    <label for="about_company">About Company:</label> 
+                    <input type="text" id="about_company" v-model="about_company" class = "form-control" required><br><br>
+                </div> 
+            </div>
+
+            <div v-if="roleStudent" class="form-group">
+                <div class = "form-group">
+                    <label for="department">Department:</label> 
+                    <input type="text" id="department" v-model="department" class = "form-control" required><br><br>
+                </div>
+
+                <div class = "form-group">
+                    <label for="roll_number">Roll Number:</label> 
+                    <input type="text" id="roll_number" v-model="roll_number" class = "form-control" required><br><br>
+                </div>
+            </div>
+            <input type="submit" class="btn btn-primary" value="Signup">
+        </form> 
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='static/signup.js') }}"></script>
+{% endblock %}
