@@ -293,6 +293,52 @@ def change_company_status(company_id):
             'current_status': company.status
         }), 200   
 
+#change student application status api route for admin and company 
+@company_bp.route('/student_application_status/<int:id>', methods=['GET', 'POST'])
+@admin_bp.route('/student_application_status/<int:id>', methods=['GET', 'POST'])
+def student_application_status(id):
+    if request.method == "GET":
+        application = Application.query.get(id)
+        if not application:
+            return jsonify({'error': 'Application not found'}), 404
+        return render_template('templates/change_student_application_status.html', 
+                               application_id=application.id,
+                               student_id=application.student_id,
+                               placement_drive_id=application.placement_drive_id,
+                               current_status=application.status,
+                               company=application.placement_drive.company.company_name if application.placement_drive and application.placement_drive.company else 'N/A',
+                               job_title=application.placement_drive.job_title if application.placement_drive else 'N/A')
+    
+    if request.method == "POST":
+        verify_jwt_in_request()
+
+        claims = get_jwt()
+
+        if claims.get('role') not in ['admin', 'company']:
+            return jsonify({'error': "Unauthorized access"}), 403
+        
+        application = Application.query.get(id)
+        if not application:
+            return jsonify({'error': 'Application not found'}), 404
+        
+        data = request.get_json()
+        new_status = data.get('status')
+        new_status = new_status.lower().strip()
+
+        allowed_statuses = ['shortlisted', 'interview complete', 'offer', 'rejected', 'inactive', 'placed']
+        if new_status not in allowed_statuses:
+            return jsonify({'error': f'Status must be one of: {", ".join(allowed_statuses)}'}), 400
+        
+        application.status = new_status
+        db.session.commit()
+
+        return jsonify({
+            'message': f'Application status successfully updated to {new_status}!',
+            'application_id': application.id,
+            'current_status': application.status
+        }), 200
+
+
 #company dashboard api route
 @company_bp.route('/company/dashboard', methods=['GET'])
 @jwt_required()
