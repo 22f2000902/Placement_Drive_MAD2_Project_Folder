@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %} 
+
+    Change Student Status
+
+{% endblock  %}
+
+
+{% block content %}
+    <div id = "change-student-status" data-student-id="{{ student_id }}" data-student-name="{{ student_name }}"
+        data-student-status="{{ student_status }}" class = "container mt-4"> 
+
+        <div v-if="successMessage" class="alert alert-success">
+            [[ successMessage ]]
+        </div>
+
+        <div v-if="errorMessage" class="alert alert-danger">
+            [[ errorMessage ]]
+        </div>
+
+        <h3 align = 'center' class = 'display-5'> <p class = "text-primary-emphasis"> Student Status Review </p></h3>
+
+        <p align = "center"> The student is currently [[ student.is_active ? 'Active' : 'Inactive' ]]. Do you want to change the status? </p>
+
+        <table name = "application" class="table table-bordered table-hover"> 
+        <thead class ="table-dark"> 
+            <tr> 
+                <th> ID </th>
+                <th> HR_Name </th>
+                <th> Company_Name </th>
+                <th> About Company </th>
+                <th> No of Drives </th> 
+                <th> Status </th>
+                <th> Actions </th>
+            </tr>
+            <tbody> 
+                <tr> 
+                    <td> [[ student.id ]] </td>
+                    <td> [[ student.full_name ]] </td>
+                    <td> [[ student.company_name ]] </td>
+                    <td> [[ student.about_company ]] </td>
+                    <td> [[ student.number_of_drives ]] </td>
+                    <td> [[ student.status ]] </td>
+                    <td> 
+                        <button @click="changeStatus" class="btn btn-danger"> Change Status </button>
+                    </td> 
+                </tr>
+            </tbody> 
+        </thead> 
+    </table>
+    </div>
+    
+{% endblock  %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='admin_change_student_status.js') }}"></script>
+{% endblock %}

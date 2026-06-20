@@ -27,7 +27,7 @@
                 <td> [[ company.company_name ]] </td>
                 <td> [[ company.status ]] </td>
                 <td> 
-                    <a :href="'/api/admin/companies/' + company.id + '/status'" class="btn btn-primary btn-sm"> Change Status </a>   
+                    <a :href="'/api/admin/change_company_status/' + company.id" class="btn btn-primary btn-sm"> Change Status </a>   
                 </td> 
             </tr>
             <tr v-if="companies.length === 0">
@@ -39,5 +39,5 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="/frontend/static/company_list.js"></script>
+    <script src="{{ url_for('static', filename='company_list.js') }}"></script>
 {% endblock %}

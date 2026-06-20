@@ -37,5 +37,5 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="/frontend/static/student_list.js"></script>
+    <script src="{{ url_for('static', filename='student_list.js') }}"></script>
 {% endblock %}

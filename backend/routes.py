@@ -15,7 +15,7 @@ student_bp = Blueprint('student_bp', __name__)
 @auth_bp.route("/login/<role>", methods=["GET", "POST"])
 def login(role):
     if request.method == "GET":
-        return render_template("templates/login.html")
+        return render_template("login.html")
     
     if request.method == "POST":
 
@@ -46,7 +46,7 @@ def login(role):
 @auth_bp.route("/signup/<role>", methods=["GET", "POST"])
 def signup(role):
     if request.method == "GET":
-        return render_template("templates/signup.html")
+        return render_template("signup.html")
 
     if request.method == "POST": 
         if role == "admin":
@@ -154,7 +154,7 @@ def profile(user_id):
 @admin_bp.route('/dashboard', methods=['GET', 'POST'])
 def admin_dashboard():
     if request.method == 'GET':
-        return render_template('templates/admin/dashboard.html')
+        return render_template('admin/dashboard.html')
     
     if request.method == 'POST':
         try:
@@ -197,7 +197,7 @@ def admin_companies():
 
     # Render HTML page
     if request.method == 'GET':
-        return render_template('templates/admin/company.html')
+        return render_template('admin/company.html')
 
     # API data route
     if request.method == 'POST':
@@ -227,7 +227,7 @@ def admin_companies():
 @admin_bp.route('/students', methods=['GET', 'POST'])
 def admin_students():
     if request.method == 'GET':
-        return render_template('templates/admin/students_list.html')
+        return render_template('admin/students_list.html')
     if request.method == 'POST':
         verify_jwt_in_request()
 
@@ -257,7 +257,7 @@ def change_company_status(company_id):
         company = Company.query.get(company_id)
 
         return render_template(
-            'templates/admin/change_company_status.html',
+            'admin/change_company_status.html',
             company_id=company.id,
             company_name=company.company_name,
             company_status=company.status,
@@ -293,6 +293,48 @@ def change_company_status(company_id):
             'current_status': company.status
         }), 200   
 
+#change student status 
+@admin_bp.route('/change_student_status/<int:student_id>', methods=['GET', 'POST'])
+def change_student_status(student_id):
+    if request.method == "GET":
+        student = Student.query.get(student_id)
+
+        return render_template(
+            'admin/change_student_status.html',
+            student_id=student.id,
+            student_name=student.full_name,
+            student_status=student.is_active
+        )
+    if request.method == "POST":
+        verify_jwt_in_request()
+
+        claims = get_jwt()
+
+        if claims.get('role') != 'admin':
+            return jsonify({'error': "Unauthorized access"}), 403
+        
+        student = Student.query.get(student_id)
+        if not student:
+            return jsonify({'error': 'Student not found'}), 404
+        
+        data = request.get_json()
+        new_status = data.get('status')
+        new_status = new_status.lower().strip()
+
+        allowed_statuses = ['active', 'inactive', 'pending', 'blacklisted']
+        if new_status not in allowed_statuses:
+            return jsonify({'error': f'Status must be one of: {", ".join(allowed_statuses)}'}), 400
+        
+        student.status = new_status
+        db.session.commit()
+
+        return jsonify({
+            'message': f'Student status successfully updated to {new_status}!',
+            'student_id': student.id,
+            'current_status': student.status
+        }), 200
+
+
 #change student application status api route for admin and company 
 @company_bp.route('/student_application_status/<int:id>', methods=['GET', 'POST'])
 @admin_bp.route('/student_application_status/<int:id>', methods=['GET', 'POST'])
@@ -301,13 +343,18 @@ def student_application_status(id):
         application = Application.query.get(id)
         if not application:
             return jsonify({'error': 'Application not found'}), 404
-        return render_template('templates/change_student_application_status.html', 
-                               application_id=application.id,
-                               student_id=application.student_id,
-                               placement_drive_id=application.placement_drive_id,
-                               current_status=application.status,
-                               company=application.placement_drive.company.company_name if application.placement_drive and application.placement_drive.company else 'N/A',
-                               job_title=application.placement_drive.job_title if application.placement_drive else 'N/A')
+        return render_template(
+                                'admin/change_student_application_status.html',
+                                application_id=application.id,
+                                student_id=application.student_id,
+                                placement_drive_id=application.placement_drive_id,
+                                current_status=application.status,
+                                student_name=application.student.name,
+                                roll_number=application.student.roll_number,
+                                department=application.student.department,
+                                company=application.placement_drive.company.company_name,
+                                job_title=application.placement_drive.job_title
+                            )
     
     if request.method == "POST":
         verify_jwt_in_request()

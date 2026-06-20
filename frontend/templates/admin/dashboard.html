@@ -8,9 +8,6 @@
 <div id="admin-dashboard-app" class="container mt-4"> 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 align="center" class="display-5"> <p class="text-primary-emphasis"> Admin Dashboard </p></h2> 
-        <div> 
-            <button @click="handleLogout" class="btn btn-danger"> Logout </button>
-        </div>
     </div>
 
     <div class="container mt-4 mb-4 p-0">
@@ -114,7 +111,7 @@
                         [[ student.is_active ? 'Active' : 'Inactive' ]] 
                 </td>
                 <td> 
-                    <a :href="'/api/admin/students/' + student.id + '/status'" class="btn btn-primary btn-sm me-1"> Change Status </a>
+                    <a :href="'/api/admin/change_student_status/' + student.id" class="btn btn-primary btn-sm me-1"> Change Status </a>
                     <a :href="'/api/admin/students/' + student.id + '/applications'" class="btn btn-outline-primary btn-sm me-1"> View Applications </a>   
                     <a :href="'/api/admin/students/' + student.id + '/profile'" class="btn btn-outline-secondary btn-sm"> View Profile </a>
                 </td> 
@@ -166,7 +163,7 @@
 
 {% block scripts %}
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-<script src="/frontend/static/admin_dashboard.js"></script>
+<script src="{{ url_for('static', filename='admin_dashboard.js') }}"></script>
 {% endblock %}
 
 {% endblock %}

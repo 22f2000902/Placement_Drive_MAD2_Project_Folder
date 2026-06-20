@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %} 
+
+    Change Student Application Status
+
+{% endblock  %}
+
+
+{% block content %}
+    <div id = "change-student-application-status" data-application-id="{{ application_id }}" data-student-id="{{ student_id }}" data-placement-drive-id="{{ placement_drive_id }}"
+        data-current-status="{{ current_status }}" data-company="{{ company }}" data-job-title="{{ job_title }}"
+        class = "container mt-4"> 
+
+        <div v-if="successMessage" class="alert alert-success">
+            [[ successMessage ]]
+        </div>
+
+        <div v-if="errorMessage" class="alert alert-danger">
+            [[ errorMessage ]]
+        </div>
+
+        <h3 align = 'center' class = 'display-5'> <p class = "text-primary-emphasis"> Student Application Status Review </p></h3>
+
+        <p align = "center"> The student application is currently [[ current_status ]]. Do you want to change the status? </p>
+
+        <table name = "application" class="table table-bordered table-hover"> 
+        <thead class ="table-dark"> 
+            <tr> 
+                <th> ID </th>
+                <th> Student Name </th>
+                <th> Roll Number </th>
+                <th> Departments </th>
+                <th> Job Title </th>
+                <th> Company </th> 
+                <th> Status </th>
+                <th> Actions </th>
+            </tr>
+            <tbody> 
+                <tr> 
+                    <td> [[ application_id ]] </td>
+                    <td> [[ student_name ]] </td>
+                    <td> [[ roll_number ]] </td>
+                    <td> [[ department ]] </td>
+                    <td> [[ job_title ]] </td>
+                    <td> [[ company ]] </td>
+                    <td>
+                        <select v-model="selectedStatus" class="form-select">
+                            <option disabled value=""> Select Status </option>
+
+                            <option v-for="status in availableStatuses" :key="status" :value="status">
+                                [[ status ]]
+                            </option>
+
+                        </select>
+                    </td>
+                    <td> 
+                        <button @click="changeStatus" :disabled="!selectedStatus" class="btn btn-danger"> Change Status </button>
+                    </td> 
+                </tr>
+            </tbody> 
+        </thead> 
+    </table>
+    </div>
+    
+{% endblock  %}
+
+{% block scripts %}
+    <script src="{{ url_for('static/admin', filename='admin_student_application_change_status.js') }}"></script>
+{% endblock %}

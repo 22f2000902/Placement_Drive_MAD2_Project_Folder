@@ -12,7 +12,7 @@ jwt = JWTManager()
 
 def createApp():
     # Change "../frontend" to just "frontend"
-    app = Flask(__name__, template_folder="frontend", static_folder="frontend")
+    app = Flask(__name__, template_folder="frontend/templates", static_folder="frontend/static")
     app.config.from_object(LocalDevelopmentConfig)
     db.init_app(app)
     jwt.init_app(app)
