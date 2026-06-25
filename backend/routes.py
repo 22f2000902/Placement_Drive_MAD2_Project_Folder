@@ -216,6 +216,7 @@ def admin_companies():
                 {
                     'id': c.id,
                     'company_name': c.company_name,
+                    'full_name': c.full_name,
                     'email': c.email,
                     'status': c.status,
                     'is_blacklisted': c.is_blacklisted
@@ -228,6 +229,7 @@ def admin_companies():
 def admin_students():
     if request.method == 'GET':
         return render_template('admin/students_list.html')
+    
     if request.method == 'POST':
         verify_jwt_in_request()
 
@@ -245,7 +247,7 @@ def admin_students():
                    'full_name': s.full_name,
                    'roll_number': s.roll_number,
                    'department': s.department,
-                   'status': 'Active' if s.is_active else 'Inactive',
+                   'is_active': s.is_active,
                    'resume_path': s.resume_path
                 } for s in students
             ]
@@ -287,51 +289,65 @@ def change_company_status(company_id):
         company.status = new_status
         db.session.commit()
 
+        number_of_drives = PlacementDrive.query.filter_by(company_id=company.id).count()
+
         return jsonify({
             'message': f'Company status successfully updated to {new_status}!',
             'company_id': company.id,
-            'current_status': company.status
+            'current_status': company.status,
+            'number_of_placement_drives': number_of_drives
         }), 200   
 
-#change student status 
 @admin_bp.route('/change_student_status/<int:student_id>', methods=['GET', 'POST'])
 def change_student_status(student_id):
+
     if request.method == "GET":
+
         student = Student.query.get(student_id)
+
+        if not student:
+            return jsonify({'error': 'Student not found'}), 404
 
         return render_template(
             'admin/change_student_status.html',
             student_id=student.id,
             student_name=student.full_name,
+            roll_number=student.roll_number,
+            department=student.department,
             student_status=student.is_active
         )
+
     if request.method == "POST":
+
         verify_jwt_in_request()
 
         claims = get_jwt()
 
         if claims.get('role') != 'admin':
             return jsonify({'error': "Unauthorized access"}), 403
-        
+
         student = Student.query.get(student_id)
+
         if not student:
             return jsonify({'error': 'Student not found'}), 404
-        
-        data = request.get_json()
-        new_status = data.get('status')
-        new_status = new_status.lower().strip()
 
-        allowed_statuses = ['active', 'inactive', 'pending', 'blacklisted']
-        if new_status not in allowed_statuses:
-            return jsonify({'error': f'Status must be one of: {", ".join(allowed_statuses)}'}), 400
-        
-        student.status = new_status
+        data = request.get_json()
+
+        status = data.get("status")
+
+        if not isinstance(status, bool):
+            return jsonify({
+                "error": "Status must be a boolean."
+            }), 400
+
+        student.is_active = status
+
         db.session.commit()
 
         return jsonify({
-            'message': f'Student status successfully updated to {new_status}!',
-            'student_id': student.id,
-            'current_status': student.status
+            "message": "Student status updated successfully.",
+            "student_id": student.id,
+            "current_status": student.is_active
         }), 200
 
 

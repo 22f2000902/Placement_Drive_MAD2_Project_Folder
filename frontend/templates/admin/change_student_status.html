@@ -1,58 +1,84 @@
 {% extends "base.html" %}
 
-{% block title %} 
-
-    Change Student Status
-
-{% endblock  %}
-
+{% block title %}
+Change Student Status
+{% endblock %}
 
 {% block content %}
-    <div id = "change-student-status" data-student-id="{{ student_id }}" data-student-name="{{ student_name }}"
-        data-student-status="{{ student_status }}" class = "container mt-4"> 
 
-        <div v-if="successMessage" class="alert alert-success">
-            [[ successMessage ]]
-        </div>
+<div
+    id="change-student-status"
+    class="container mt-4"
 
-        <div v-if="errorMessage" class="alert alert-danger">
-            [[ errorMessage ]]
-        </div>
+    data-student-id="{{ student_id }}"
+    data-student-name="{{ student_name }}"
+    data-roll-number="{{ roll_number }}"
+    data-department="{{ department }}"
+    data-student-status="{{ student_status }}"
+>
 
-        <h3 align = 'center' class = 'display-5'> <p class = "text-primary-emphasis"> Student Status Review </p></h3>
-
-        <p align = "center"> The student is currently [[ student.is_active ? 'Active' : 'Inactive' ]]. Do you want to change the status? </p>
-
-        <table name = "application" class="table table-bordered table-hover"> 
-        <thead class ="table-dark"> 
-            <tr> 
-                <th> ID </th>
-                <th> HR_Name </th>
-                <th> Company_Name </th>
-                <th> About Company </th>
-                <th> No of Drives </th> 
-                <th> Status </th>
-                <th> Actions </th>
-            </tr>
-            <tbody> 
-                <tr> 
-                    <td> [[ student.id ]] </td>
-                    <td> [[ student.full_name ]] </td>
-                    <td> [[ student.company_name ]] </td>
-                    <td> [[ student.about_company ]] </td>
-                    <td> [[ student.number_of_drives ]] </td>
-                    <td> [[ student.status ]] </td>
-                    <td> 
-                        <button @click="changeStatus" class="btn btn-danger"> Change Status </button>
-                    </td> 
-                </tr>
-            </tbody> 
-        </thead> 
-    </table>
+    <div v-if="successMessage" class="alert alert-success">
+        [[ successMessage ]]
     </div>
-    
-{% endblock  %}
+
+    <div v-if="errorMessage" class="alert alert-danger">
+        [[ errorMessage ]]
+    </div>
+
+    <h3 class="display-5 text-center">
+        <span class="text-primary-emphasis">
+            Student Status Review
+        </span>
+    </h3>
+
+    <p class="text-center">
+        The student is currently
+        <strong>
+            [[ student.is_active ? 'Active' : 'Inactive' ]]
+        </strong>.
+        Do you want to change the status?
+    </p>
+
+    <table class="table table-bordered table-hover">
+
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Roll Number</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            <tr>
+
+                <td>[[ student.id ]]</td>
+                <td>[[ student.full_name ]]</td>
+                <td>[[ student.department ]]</td>
+                <td>[[ student.roll_number ]]</td>
+                <td> [[ student.is_active ? 'Active' : 'Inactive' ]] </td>
+
+                <td>
+                    <button class="btn btn-danger" @click="changeStatus">
+                        Change Status
+                    </button>
+
+                </td>
+
+            </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}
 
 {% block scripts %}
-    <script src="{{ url_for('static', filename='admin_change_student_status.js') }}"></script>
+<script src="{{ url_for('static', filename='admin_change_student_status.js') }}"></script>
 {% endblock %}

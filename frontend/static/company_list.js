@@ -50,5 +50,5 @@ createApp({
             // Placeholder for company action handling logic (e.g., approve/reject)
             console.log(`Action "${action}" triggered for company ID: ${companyId}`);
         }
-    }
+    } 
 }).mount('#company-list-dashboard-app');

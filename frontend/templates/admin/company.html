@@ -17,26 +17,28 @@
                 <th scope="col"> HR Name </th>
                 <th scope="col"> Company Name </th>
                 <th scope="col"> Status </th>
+                <th scope="col"> Number of Drives </th>
                 <th scope="col"> Actions </th>
             </tr>
         </thead> 
         <tbody> 
             <tr v-for="company in companies" :key="company.id"> 
                 <td> [[ company.id ]] </td>
-                <td> [[ company.full_name ? company.full_name : 'N/A' ]] </td>
+                <td> [[ company.full_name ]] </td>
                 <td> [[ company.company_name ]] </td>
                 <td> [[ company.status ]] </td>
+                <td> [[ company.number_of_drives ]] </td>
                 <td> 
                     <a :href="'/api/admin/change_company_status/' + company.id" class="btn btn-primary btn-sm"> Change Status </a>   
                 </td> 
             </tr>
             <tr v-if="companies.length === 0">
-                <td colspan="5" class="text-center text-muted py-3">No pending registration requests found.</td>
+                <td colspan="6" class="text-center text-muted py-3">No pending registration requests found.</td>
             </tr>
         </tbody> 
     </table>
 </div>
-{% endblock %}
+{% endblock %} 
 
 {% block scripts %}
     <script src="{{ url_for('static', filename='company_list.js') }}"></script>

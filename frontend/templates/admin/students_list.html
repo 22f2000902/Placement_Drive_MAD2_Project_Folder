@@ -24,13 +24,14 @@
         <tbody> 
             <tr v-for="student in students" :key="student.id"> 
                 <td> [[ student.id ]] </td>
-                <td> [[ student.full_name ? student.full_name : 'N/A' ]] </td>
+                <td> [[ student.full_name ]] </td>
                 <td> [[ student.roll_number ]] </td>
                 <td> [[ student.department ]] </td>
+                <td> [[ student.is_active ? 'Active' : 'Inactive' ]] </td>
                 <td> 
-                    <a :href="'/api/admin/students/' + student.id + '/status'" class="btn btn-primary btn-sm"> Change Status </a>   
+                    <a :href="'/api/admin/change_student_status/' + student.id" class="btn btn-primary btn-sm"> Change Status </a>   
                 </td> 
-            </tr>
+            </tr> 
         </tbody> 
     </table>
 </div>

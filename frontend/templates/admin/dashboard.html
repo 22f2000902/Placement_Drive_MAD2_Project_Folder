@@ -108,7 +108,7 @@
                 <td> [[ student.full_name ]] </td>
                 <td> [[ student.email ]] </td>
                 <td> 
-                        [[ student.is_active ? 'Active' : 'Inactive' ]] 
+                        [[ student.is_active ]] 
                 </td>
                 <td> 
                     <a :href="'/api/admin/change_student_status/' + student.id" class="btn btn-primary btn-sm me-1"> Change Status </a>
