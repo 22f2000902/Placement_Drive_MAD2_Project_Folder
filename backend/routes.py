@@ -157,8 +157,6 @@ def admin_dashboard():
         return render_template('admin/dashboard.html')
     
     if request.method == 'POST':
-        try:
-            from flask_jwt_extended import verify_jwt_in_request
             verify_jwt_in_request()
             
             claims = get_jwt()
@@ -188,8 +186,6 @@ def admin_dashboard():
                     for p in placements
                 ]
             }), 200
-        except Exception as e:
-                return jsonify({'error': 'Missing or invalid token reference', 'details': str(e)}), 401
 
 #page to view all companies for admin
 @admin_bp.route('/companies', methods=['GET', 'POST'])
@@ -401,50 +397,136 @@ def student_application_status(id):
             'current_status': application.status
         }), 200
 
+#admin views all the current placement drives api route
+@admin_bp.route('/placement_drives', methods=['GET', 'POST'])
+@company_bp.route('/placement_drives', methods=['GET', 'POST'])
+def placement_drives_list():
+    if request.method == 'GET':
+        return render_template('admin/placement_list.html')
+    
+    if request.method == 'POST':
+        verify_jwt_in_request()
+
+        claims = get_jwt()
+
+        if claims.get('role') not in ['admin', 'company']:
+            return jsonify({'error': "Unauthorized access"}), 403
+        
+        placements = PlacementDrive.query.order_by(PlacementDrive.id.asc()).all()
+
+        return jsonify({
+            'placements': [
+                {
+                    'id': p.id,
+                    'company_name': p.company.company_name,
+                    'job_title': p.job_title,
+                    'drive_date': str(p.drive_date),
+                    'drive_end_date': str(p.drive_end_date),
+                    'status': p.status,
+                    'is_approved': p.is_approved
+                } for p in placements
+            ]
+        }), 200
 
 #company dashboard api route
-@company_bp.route('/company/dashboard', methods=['GET'])
-@jwt_required()
+@company_bp.route('/dashboard', methods=['GET', 'POST'])
 def company_dashboard():
-    claims = get_jwt()
-    if claims.get('role') != 'company':
-        return jsonify({'error': "Unauthorized access"}), 403
+    if request.method == 'GET':        
+        return render_template('company/dashboard.html')
     
-    company_id = get_jwt_identity()
-    active_placements = PlacementDrive.query.filter_by(company_id=company_id, status='active').order_by(PlacementDrive.id.asc()).all()
-    inactive_placements = PlacementDrive.query.filter_by(company_id=company_id, status= 'inactive').order_by(PlacementDrive.id.asc()).all()
+    if request.method == "POST":
 
-    return jsonify({
-        'active_placements': [{
-            'id': p.id,
-            'company_id': p.company_id,
-            'job_title': p.job_title,
-            'job_description': p.job_description,
-            'salary_range': p.salary_range,
-            'key_skills': p.key_skills,
-            'drive_date': p.drive_date.isoformat() if p.drive_date else None,
-            'drive_end_date': p.drive_end_date.isoformat() if p.drive_end_date else None,
-            'status': p.status,
-            'is_approved': p.is_approved
-        } for p in active_placements],
+        verify_jwt_in_request()
+
+        claims = get_jwt()
+
+        if claims.get("role") != "company":
+            return jsonify({"error": "Unauthorized access"}), 403
+
+        company_id = get_jwt_identity()
+        active_placements = PlacementDrive.query.filter_by(company_id=company_id, status='active').order_by(PlacementDrive.id.asc()).all()
+        inactive_placements = PlacementDrive.query.filter_by(company_id=company_id, status= 'inactive').order_by(PlacementDrive.id.asc()).all()
+
+        return jsonify({
+            'active_placements': [{
+                'id': p.id,
+                'company_id': p.company_id,
+                'job_title': p.job_title,
+                'job_description': p.job_description,
+                'salary_range': p.salary_range,
+                'key_skills': p.key_skills,
+                'drive_date': p.drive_date.isoformat() if p.drive_date else None,
+                'drive_end_date': p.drive_end_date.isoformat() if p.drive_end_date else None,
+                'status': p.status,
+                'is_approved': p.is_approved
+            } for p in active_placements],
+            
+            'inactive_placements': [{
+                'id': p.id,
+                'company_id': p.company_id,
+                'job_title': p.job_title,
+                'job_description': p.job_description,
+                'salary_range': p.salary_range,
+                'key_skills': p.key_skills,
+                'drive_date': p.drive_date.isoformat() if p.drive_date else None,
+                'drive_end_date': p.drive_end_date.isoformat() if p.drive_end_date else None,
+                'status': p.status,
+                'is_approved': p.is_approved
+            } for p in inactive_placements]
+        }), 200
+
+@company_bp.route('/create_drive', methods=['GET', 'POST'])
+def create_drive():
+    if request.method == 'GET':
+        return render_template('company/create_drive.html')
+    
+    if request.method == 'POST':
+        verify_jwt_in_request()
+
+        claims = get_jwt()
+
+        if claims.get('role') != 'company':
+            return jsonify({'error': "Unauthorized access"}), 403
         
-        'inactive_placements': [{
-            'id': p.id,
-            'company_id': p.company_id,
-            'job_title': p.job_title,
-            'job_description': p.job_description,
-            'salary_range': p.salary_range,
-            'key_skills': p.key_skills,
-            'drive_date': p.drive_date.isoformat() if p.drive_date else None,
-            'drive_end_date': p.drive_end_date.isoformat() if p.drive_end_date else None,
-            'status': p.status,
-            'is_approved': p.is_approved
-        } for p in inactive_placements]
-    }), 200
+        company_id = get_jwt_identity()
+        data = request.get_json()
+
+        job_title = data.get('job_title')
+        job_description = data.get('job_description')
+        salary_range = data.get('salary_range')
+        key_skills = data.get('key_skills')
+        drive_date_str = data.get('drive_date')
+        drive_end_date_str = data.get('drive_end_date')
+
+        try:
+            drive_date = datetime.fromisoformat(drive_date_str) if drive_date_str else None
+            drive_end_date = datetime.fromisoformat(drive_end_date_str) if drive_end_date_str else None
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
+
+        new_drive = PlacementDrive(
+            company_id=company_id,
+            job_title=job_title,
+            job_description=job_description,
+            salary_range=salary_range,
+            key_skills=key_skills,
+            drive_date=drive_date,
+            drive_end_date=drive_end_date,
+            status='active',
+            is_approved=False
+        )
+
+        db.session.add(new_drive)
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Placement drive created successfully!',
+            'placement_drive_id': new_drive.id
+        }), 201
 
 #common view drive page api route for companies and admin 
-@admin_bp.route('/admin/view-drive/<int:drive_id>')
-@company_bp.route('/company/view-drive/<int:drive_id>')
+@admin_bp.route('/view-drive/<int:drive_id>')
+@company_bp.route('/view-drive/<int:drive_id>')
 @jwt_required()
 def view_drive(drive_id):
     claims = get_jwt()

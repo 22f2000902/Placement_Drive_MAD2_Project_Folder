@@ -5,17 +5,16 @@ createApp({
 
     data() {
         return {
-            role: '',
-            name: '',
-            email: '',
-            password: '',
-            confirm_password: '',
-            phone_number: '',
-            company_name: '',
-            about_company: '',
-            department: '',
-            roll_number: '',
-            errorMessage: ''
+                name: '',
+                email: '',
+                password: '',
+                confirm_password: '',
+                phone_number: '',
+                company_name: '',
+                about_company: '',
+                department: '',
+                roll_number: '',
+                errorMessage: ''
         };
     },
 

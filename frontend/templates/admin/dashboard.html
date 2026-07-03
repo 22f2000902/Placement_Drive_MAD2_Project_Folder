@@ -43,7 +43,7 @@
             <td> [[ company.company_name ]] </td>
             <td> [[ company.status ]] </td>
             <td> 
-                <a :href="'/api/admin/change_company_status/' + company.id" class="btn btn-primary btn-sm"> Change Status </a>   
+                <a :href="'/api/admin/change_company_status/' + company.id" class="btn btn-primary"> Change Status </a>   
             </td> 
         </tr>
         <tr v-if="requestedCompanies.length === 0">
@@ -73,8 +73,8 @@
                 <td> [[ company.company_name ]] </td>
                 <td> [[ company.status ]] </td>
                 <td> 
-                    <a :href="'/api/admin/companies/' + company.id + '/drives'" class="btn btn-outline-primary btn-sm me-1"> View Drives </a>
-                    <a :href="'/api/admin/change_company_status/' + company.id" class="btn btn-primary btn-sm"> Change Status </a>   
+                    <a :href="'/api/admin/companies/' + company.id + '/drives'" class="btn btn-outline-primary me-1"> View Drives </a>
+                    <a :href="'/api/admin/change_company_status/' + company.id" class="btn btn-primary"> Change Status </a>   
                 </td> 
             </tr>
             <tr v-if="activeCompanies.length === 0">
@@ -125,7 +125,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4"> 
         <h2 class="display-5"> <p class="text-primary-emphasis"> Active Placements </p></h2>
         <div> 
-            <a href="/api/admin/placements" class="btn btn-info"> View All Placements </a> 
+            <a href="/api/admin/placement_drives" class="btn btn-info"> View All Placements </a> 
         </div> 
     </div> 
 

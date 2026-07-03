@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}
+
+    Create Drive
+    
+{% endblock  %}
+
+{% block content %}
+
+    <div id="company-create-drive-app" class="container mt-5">
+        <div class="col-md-6">
+            <h1 class="mb-4">Create Drive</h1> 
+
+            <div v-if="errorMessage" class="alert alert-danger" role="alert">
+                [[ errorMessage ]]
+            </div>
+
+            <div v-if="successMessage" class="alert alert-success" role="alert">
+                [[ successMessage ]]
+            </div>
+
+            <form @submit.prevent="handleCreateDrive">
+
+                <div class="form-group">
+                    <label for="job_title" class="form-label">Job Title:</label>
+                    <input type="text" id="job_title" v-model="job_title" class="form-control" required><br><br> 
+                </div>
+
+                <div class="form-group">
+                    <label for="job_description" class="form-label">Job Description:</label>
+                    <input type="text" id="job_description" v-model="job_description" class="form-control" required><br><br> 
+                </div>
+
+                <div class="form-group">
+                    <label for="drive_date" class="form-label">Drive Date:</label>
+                    <input type="date" id="drive_date" v-model="drive_date" class="form-control" required><br><br> 
+                </div>
+
+                <div class = "form-group">
+                    <label for = "drive_end_date">Drive End Date:</label>
+                        <input type="date" id="drive_end_date" v-model="drive_end_date" class = "form-control" required><br><br>
+                </div>
+
+                <div class = "form-group">
+                    <label for = "salary_range">Salary Range:</label>
+                    <input type="text" id="salary_range" v-model="salary_range" class = "form-control" required><br><br>
+                </div>
+
+                <div class = "form-group">
+                    <label for="key_skills">Key Skills:</label> 
+                    <input type="text" id="key_skills" v-model="key_skills" class = "form-control" required><br><br>
+                </div>
+
+                <input type="submit" class="btn btn-success" value="Create Drive">
+            </form> 
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='company_create_drive.js') }}"></script>
+{% endblock %}

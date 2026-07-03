@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Company Dashboard - PDMS
+{% endblock %}
+
+{% block content %}
+<div id="company-dashboard-app" class="container mt-4"> 
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 align="center" class="display-5"> <p class="text-primary-emphasis"> Company Dashboard </p></h2> 
+        <div> 
+            <a href="/api/company/create_drive" class="btn btn-info"> Create new Drive </a> 
+        </div> 
+    </div>
+
+    <hr> 
+
+    <div class="d-flex justify-content-between align-items-center mb-4"> 
+        <h6 class="display-5"> <p class="text-primary-emphasis"> Unapproved Placements </p></h6>
+        <div> 
+            <a href="/api/company/placement_drives" class="btn btn-info"> View All Placements </a> 
+        </div> 
+    </div> 
+
+    <table name="company" class="table table-bordered table-hover mb-5"> 
+    <thead class="table-dark"> 
+        <tr> 
+            <th scope="col"> ID </th> 
+            <th scope="col"> Job Title </th>
+            <th scope="col"> Drive Start Date </th>
+            <th scope="col"> Drive End Date </th>
+            <th scope="col"> Status </th>
+            <th scope="col"> Actions </th>
+        </tr>
+    </thead> 
+    <tbody> 
+        <tr v-for="placement in activePlacements" :key="placement.id"> 
+            <td> [[ placement.id ]] </td>
+            <td> [[ placement.job_title ]] </td>
+            <td> [[ placement.drive_date ]] </td>
+            <td> [[ placement.drive_end_date ]] </td>
+            <td> [[ placement.status ]] </td>
+            <td> 
+                <a :href="'/api/company/view_drive/' + placement.id" class="btn btn-info me-1"> View Drive </a> 
+                <a :href="'/api/company/change_drive_status/' + placement.id" class="btn btn-primary"> Change Status </a>   
+            </td> 
+        </tr>
+        <tr v-if="activePlacements.length === 0">
+            <td colspan="6" class="text-center text-muted py-3">No pending placement requests found.</td>
+        </tr>
+    </tbody> 
+</table>
+
+    <br><hr><br>
+
+    <div class="d-flex justify-content-between align-items-center mb-4"> 
+        <h2 class="display-5"> <p class="text-primary-emphasis"> Approved Placements </p></h2>
+    </div> 
+
+    <table name="placements" class="table table-bordered table-hover"> 
+        <thead class="table-dark"> 
+            <tr> 
+                <th scope="col"> ID </th>
+                <th scope="col"> Name </th>
+                <th scope="col"> Drive Date </th>
+                <th scope="col"> End Date </th>
+                <th scope="col"> Job Title </th>
+                <th scope="col"> Status </th>
+                <th scope="col"> Actions </th>
+            </tr>
+        </thead> 
+        <tbody> 
+            <tr v-for="placement in inactivePlacements" :key="placement.id"> 
+                <td> [[ placement.id ]] </td>
+                <td> [[ placement.company_name || 'Corporate Drive' ]] </td>
+                <td> [[ placement.drive_date || 'N/A' ]] </td>
+                <td> [[ placement.drive_end_date || 'N/A' ]] </td>
+                <td> [[ placement.job_title ]] </td>
+                <td> [[ placement.status ]] </td>
+                <td> 
+                    <a :href="'/api/admin/placements/' + placement.id + '/applications'" class="btn btn-outline-primary btn-sm me-1"> View Applications </a>
+                    <a :href="'/api/admin/placements/' + placement.id + '/status'" class="btn btn-primary btn-sm"> Change Status </a>   
+                </td> 
+            </tr>
+            <tr v-if="inactivePlacements.length === 0">
+                <td colspan="7" class="text-center text-muted py-3">No inactive placement operations found.</td>
+            </tr>
+        </tbody> 
+    </table>
+</div> 
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='company_dashboard.js') }}"></script>
+{% endblock %}
