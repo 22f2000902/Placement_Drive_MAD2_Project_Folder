@@ -5,6 +5,7 @@ createApp({
 
     data() {
         return {
+                role: '',
                 name: '',
                 email: '',
                 password: '',

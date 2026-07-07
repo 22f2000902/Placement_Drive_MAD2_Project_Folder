@@ -14,14 +14,14 @@ student_bp = Blueprint('student_bp', __name__)
 #login api route for all users + the page routing for login page
 @auth_bp.route("/login/<role>", methods=["GET", "POST"])
 def login(role):
+
     if request.method == "GET":
         return render_template("login.html")
-    
-    if request.method == "POST":
 
+    if request.method == "POST":
         data = request.get_json()
-        email = data.get("email", None)
-        password = data.get("password", None)
+        email = data.get("email")
+        password = data.get("password")
 
         if role == "admin":
             user = Admin.query.filter_by(email=email).first()
@@ -30,17 +30,29 @@ def login(role):
         elif role == "company":
             user = Company.query.filter_by(email=email).first()
         else:
-            return jsonify("Invalid role!"), 400
+            return jsonify({"error": "Invalid role!"}), 400
 
-        if user and check_password_hash(user.password_hash, password):
-            display_name = getattr(user, 'full_name', getattr(user, 'company_name', role.capitalize()))
-            access_token = create_access_token(identity=str(user.id), additional_claims={'role': role})
-            return jsonify({
-                "access_token": access_token,
-                "role": role,
-                "name": display_name
-            }), 200
-        return jsonify({'error': 'Invalid credentials'}), 401
+        if not user or not check_password_hash(user.password_hash, password):
+            return jsonify({"error": "Invalid email or password."}), 401
+
+        # Student account status check
+        if role == "student" and not user.is_active:
+            return jsonify({"error": "Your account has been deactivated. Please contact the administrator."}), 403
+
+        # Company account status check
+        if role == "company" and user.status in ["pending", "inactive"]:
+            return jsonify({"error": "Your company account has been deactivated. Please contact the administrator."}), 403
+
+        display_name = getattr(user, "full_name", getattr(user, "company_name", role.capitalize()))
+
+        access_token = create_access_token(
+            identity=str(user.id),
+            additional_claims={
+                "role": role
+            }
+        )
+
+        return jsonify({"access_token": access_token, "role": role, "name": display_name}), 200
 
 #sign up api route
 @auth_bp.route("/signup/<role>", methods=["GET", "POST"])
@@ -346,6 +358,32 @@ def change_student_status(student_id):
             "current_status": student.is_active
         }), 200
 
+@admin_bp.route('/view_company_drives/<int:company_id>', methods=['GET', 'POST'])
+def view_company_drives(company_id):
+    if request.method == "GET":
+        return render_template('admin/admin_view_company_drive.html', company_id=company_id)
+    
+    if request.method == "POST":
+        verify_jwt_in_request()
+
+        claims = get_jwt()
+
+        if claims.get('role') != 'admin':
+            return jsonify({'error': "Unauthorized access"}), 403
+        
+        drives = PlacementDrive.query.filter_by(company_id=company_id).order_by(PlacementDrive.id.asc()).all()
+
+        return jsonify({
+            'placement_drives': [{
+                    'id': d.id,
+                    'job_title': d.job_title,
+                    'drive_date': str(d.drive_date),
+                    'drive_end_date': str(d.drive_end_date),
+                    'job_description': d.job_description,
+                    'salary_range': d.salary_range,
+                    'key_skills': d.key_skills,
+                    'status': d.status,
+                    'is_approved': d.is_approved} for d in drives]}), 200
 
 #change student application status api route for admin and company 
 @company_bp.route('/student_application_status/<int:id>', methods=['GET', 'POST'])
@@ -525,39 +563,54 @@ def create_drive():
         }), 201
 
 #common view drive page api route for companies and admin 
-@admin_bp.route('/view-drive/<int:drive_id>')
-@company_bp.route('/view-drive/<int:drive_id>')
-@jwt_required()
+@admin_bp.route('/view_drive/<int:drive_id>', methods=['GET', 'POST'])
+@company_bp.route('/view_drive/<int:drive_id>', methods=['GET', 'POST'])
 def view_drive(drive_id):
-    claims = get_jwt()
-    role = claims.get('role')
+    if request.method == 'GET':
+        return render_template('company/view_drive.html', drive_id=drive_id)
 
-    if role not in ['admin', 'company']:
-        return jsonify({'error': "Unauthorized access"}), 403
-    
-    drive = PlacementDrive.query.get(drive_id)
-    if not drive:
-        return jsonify({'error': 'Placement drive not found'}), 404
-    
-    applications = Application.query.filter_by(placement_drive_id=drive_id).order_by(Application.id.asc()).all()
+    if request.method == 'POST':
+        verify_jwt_in_request()
+        claims = get_jwt()
+        role = claims.get('role')
+        user_id = get_jwt_identity()
 
-    return jsonify({
-        'id': drive.id,
-        'company_id': drive.company_id,
-        'job_title': drive.job_title,
-        'job_description': drive.job_description,
-        'salary_range': drive.salary_range,
-        'key_skills': drive.key_skills,
-        'drive_date': drive.drive_date.isoformat() if drive.drive_date else None,
-        'drive_end_date': drive.drive_end_date.isoformat() if drive.drive_end_date else None,
-        'status': drive.status,
-        'is_approved': drive.is_approved,
-        'applications': [{
-            'id': a.id,
-            'student_id': a.student_id,
-            'status': a.status
-        } for a in applications]
-    }), 200
+        if role not in ['admin', 'company']:
+            return jsonify({'error': "Unauthorized access"}), 403
+        
+        drive = PlacementDrive.query.get(drive_id)
+        if not drive:
+            return jsonify({'error': 'Placement drive not found'}), 404
+
+        if role == "company" and str(drive.company_id) != user_id:
+            return jsonify({"error": "You are not authorized to view this placement drive."}), 403
+        
+        applications = Application.query.filter_by(placement_drive_id=drive_id).order_by(Application.id.asc()).all()
+
+        return jsonify({
+            'id': drive.id,
+            'application_count': len(applications),
+            'company': {
+                'id': drive.company.id,
+                'company_name': drive.company.company_name,
+                'about_company': drive.company.about_company},
+            'job_title': drive.job_title,
+            'job_description': drive.job_description,
+            'salary_range': drive.salary_range,
+            'key_skills': drive.key_skills,
+            'drive_date': drive.drive_date.isoformat() if drive.drive_date else None,
+            'drive_end_date': drive.drive_end_date.isoformat() if drive.drive_end_date else None,
+            'status': drive.status,
+            'is_approved': drive.is_approved,
+            'applications': [{
+                'id': a.id,
+                'student_id': a.student_id,
+                'student_name': a.student.full_name,
+                'department': a.student.department,
+                'roll_number': a.student.roll_number,
+                'status': a.status
+            } for a in applications]
+        }), 200
 
 #common api route for admin and company to review student application details
 @company_bp.route('/company/applications/review/<int:application_id>', methods=['GET'])

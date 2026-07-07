@@ -52,7 +52,7 @@
                     <input type="text" id="key_skills" v-model="key_skills" class = "form-control" required><br><br>
                 </div>
 
-                <input type="submit" class="btn btn-success" value="Create Drive">
+                <input type="submit" class="btn btn-success" value="Create Drive" :disabled="isSubmitting">
             </form> 
         </div>
     </div>

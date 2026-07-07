@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    View Company Drive - PDMS
+{% endblock %}
+
+{% block content %}
+    <div id="admin_view_company_drive_app" data-company-id="{{ company_id }}" class="container mt-4">
+
+        <h2 class="display-5">View Company Drives</h2>
+
+        <div v-if="errorMessage" class="alert alert-danger">
+            [[ errorMessage ]]
+        </div>
+
+        <div v-if="successMessage" class="alert alert-success">
+            [[ successMessage ]]
+        </div>
+
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Job Title</th>
+                    <th>Job Description</th>
+                    <th>Drive Start Date</th>
+                    <th>Drive End Date</th>
+                    <th>Key Skills</th>
+                    <th>Salary Range</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr v-for="drive in placementDrives" :key="drive.id">
+                    <td>[[ drive.id ]]</td>
+                    <td>[[ drive.job_title ]]</td>
+                    <td>[[ drive.job_description ]]</td>
+                    <td>[[ drive.drive_date ]]</td>
+                    <td>[[ drive.drive_end_date ]]</td>
+                    <td>[[ drive.key_skills ]]</td>
+                    <td>[[ drive.salary_range ]]</td>
+                    <td>[[ drive.status ]]</td>
+                    <td>
+                        <a :href="'/api/admin/change_drive_status/' + drive.id"
+                        class="btn btn-outline-danger me-1">
+                            Change Status
+                        </a> <br> <br> 
+                        <a :href="'/api/admin/view-drive/' + drive.id"
+                        class="btn btn-outline-dark">
+                            View Drive
+                        </a>
+                    </td>
+                </tr>
+                <tr v-if="placementDrives.length === 0">
+                    <td colspan="9" class="text-center text-muted">
+                        No drives found.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='admin/admin_view_company_drive.js') }}"></script>
+{% endblock %}

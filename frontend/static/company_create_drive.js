@@ -12,7 +12,8 @@ createApp({
             salary_range: '',
             key_skills: '',
             successMessage: '',
-            errorMessage: ''
+            errorMessage: '',
+            isSubmitting: false
         };
     },
 
@@ -31,7 +32,13 @@ createApp({
 
     methods: {
         async handleCreateDrive() {
+
+            if (this.isSubmitting) return;
+
+            this.isSubmitting = true;
+
             this.errorMessage = '';
+            this.successMessage = '';
 
             const driveData = {
                 job_title: this.job_title,
@@ -40,10 +47,10 @@ createApp({
                 drive_end_date: this.drive_end_date,
                 salary_range: this.salary_range,
                 key_skills: this.key_skills
-            }
+            };
 
             try {
-                const response = await fetch(`/api/company/create_drive`, {
+                const response = await fetch('/api/company/create_drive', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${this.token}`,
@@ -52,13 +59,33 @@ createApp({
                     },
                     body: JSON.stringify(driveData)
                 });
-                  
                 const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(
+                        data.error ||
+                        data.message ||
+                        'Failed to create placement drive.'
+                    );
+                }
+                this.successMessage = data.message;
+
+                this.job_title = '';
+                this.job_description = '';
+                this.drive_date = '';
+                this.drive_end_date = '';
+                this.salary_range = '';
+                this.key_skills = '';
+
+                setTimeout(() => {
+                    window.location.href = '/api/company/placement_drives';
+                }, 1500);
 
             } catch (error) {
-                console.error('Error creating placement drive:', error);
-                this.errorMessage = 'Failed to create placement drive.';
+                console.error(error);
+                this.errorMessage = error.message;
+            } finally {
+                this.isSubmitting = false;
             }
         }
-    }
+    }    
 }).mount('#company-create-drive-app')
