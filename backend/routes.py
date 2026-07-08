@@ -385,6 +385,78 @@ def view_company_drives(company_id):
                     'status': d.status,
                     'is_approved': d.is_approved} for d in drives]}), 200
 
+@admin_bp.route('/change_placement_drive_status/<int:drive_id>', methods=['GET', 'POST'])
+@company_bp.route('/change_placement_drive_status/<int:drive_id>', methods=['GET', 'POST'])
+def change_placement_drive_status(drive_id):
+    if request.method == "GET":
+        drive = PlacementDrive.query.get(drive_id)
+        if not drive:
+            return jsonify({'error': 'Placement drive not found'}), 404
+        
+        return render_template(
+            'company/change_drive_status.html',
+            drive_id=drive.id,
+            company_name=drive.company.company_name,
+            job_title=drive.job_title,
+            job_description=drive.job_description,
+            drive_date=str(drive.drive_date),
+            drive_end_date=str(drive.drive_end_date),
+            key_skills=drive.key_skills,
+            salary_range=drive.salary_range,
+            current_status=drive.status,
+            is_approved=drive.is_approved
+        )
+
+    if request.method == "POST":
+        verify_jwt_in_request()
+
+        claims = get_jwt()
+        role = claims.get('role')
+        user_id = get_jwt_identity()
+
+        if role not in ['admin', 'company']:
+            return jsonify({'error': 'Unauthorized access'}), 403
+
+        drive = PlacementDrive.query.get(drive_id)
+
+        if not drive:
+            return jsonify({'error': 'Placement drive not found'}), 404
+
+        # Company can edit only its own drives
+        if role == "company" and str(drive.company_id) != str(user_id):
+            return jsonify({'error': 'Unauthorized access'}), 403
+
+        data = request.get_json()
+
+        if role == "company":
+            new_status = data.get("status", "").lower().strip()
+            allowed_statuses = ["active", "inactive"]
+
+            if new_status not in allowed_statuses:
+                return jsonify({
+                    "error": f"Status must be one of: {', '.join(allowed_statuses)}"
+                }), 400
+            drive.status = new_status
+
+        elif role == "admin":
+            is_approved = data.get("is_approved")
+
+            if is_approved is None:
+                return jsonify({
+                    "error": "Approval status is required."
+                }), 400
+
+            drive.is_approved = bool(is_approved)
+
+        db.session.commit()
+
+        return jsonify({
+            "message": "Placement drive updated successfully.",
+            "placement_drive_id": drive.id,
+            "current_status": drive.status,
+            "is_approved": drive.is_approved
+        }), 200
+
 #change student application status api route for admin and company 
 @company_bp.route('/student_application_status/<int:id>', methods=['GET', 'POST'])
 @admin_bp.route('/student_application_status/<int:id>', methods=['GET', 'POST'])
@@ -475,15 +547,14 @@ def company_dashboard():
     if request.method == "POST":
 
         verify_jwt_in_request()
-
         claims = get_jwt()
 
         if claims.get("role") != "company":
             return jsonify({"error": "Unauthorized access"}), 403
 
         company_id = get_jwt_identity()
-        active_placements = PlacementDrive.query.filter_by(company_id=company_id, status='active').order_by(PlacementDrive.id.asc()).all()
-        inactive_placements = PlacementDrive.query.filter_by(company_id=company_id, status= 'inactive').order_by(PlacementDrive.id.asc()).all()
+        active_placements = PlacementDrive.query.filter_by(company_id=company_id, is_approved=True).order_by(PlacementDrive.id.asc()).all()
+        inactive_placements = PlacementDrive.query.filter_by(company_id=company_id, is_approved=False).order_by(PlacementDrive.id.asc()).all()
 
         return jsonify({
             'active_placements': [{

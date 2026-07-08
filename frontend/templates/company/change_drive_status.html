@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Change Drive Status
+{% endblock %}
+
+{% block content %}
+
+    <div id="change-drive-status" class="container mt-4" 
+            data-drive-id="{{ drive_id }}"
+            data-company-name="{{ company_name }}"
+            data-job-title="{{ job_title }}"
+            data-job-description="{{ job_description }}"
+            data-drive-date="{{ drive_date }}"
+            data-drive-end-date="{{ drive_end_date }}"
+            data-key-skills="{{ key_skills }}"
+            data-salary-range="{{ salary_range }}"
+            data-current-status="{{ current_status }}"
+            data-is-approved="{{ is_approved }}">
+
+        <div v-if="successMessage" class="alert alert-success">
+            [[ successMessage ]]
+        </div>
+
+        <div v-if="errorMessage" class="alert alert-danger">
+            [[ errorMessage ]]
+        </div>
+
+        <h3 class="display-5 text-center">
+            <span class="text-primary-emphasis">
+                Drive Status Review
+            </span>
+        </h3>
+
+        <div v-if="roleCompany">
+            <div class="d-flex justify-content-between align-items-center mb-4"> 
+                        <p class = "lead"> The current status of the drive is: <strong>[[ drive.status ]]</strong>. Would you like to change it? </p> 
+                </div>
+
+                <table name = "drive" class="table table-bordered table-hover"> 
+                    <thead class ="table-dark"> 
+                        <tr> 
+                            <th> ID </th>
+                            <th> Job Title </th>
+                            <th> Job Description </th>
+                            <th> Drive Start Date </th>   
+                            <th> Drive End Date </th>
+                            <th> Status </th>
+                            <th> Is Approved by admin? </th>
+                            <th> Actions </th>
+                        </tr>
+                        <tbody>
+                            <tr>
+                                <td>[[ drive.id ]]</td>
+                                <td>[[ drive.job_title ]]</td>
+                                <td>[[ drive.job_description ]]</td>
+                                <td>[[ drive.drive_date ]]</td>
+                                <td>[[ drive.drive_end_date ]]</td>
+                                <td>[[ drive.status ]]</td>
+                                <td>[[ drive.is_approved ? 'Yes' : 'No' ]]</td>
+                                <td>
+                                    <button class="btn btn-outline-danger" @click="changeStatus"> Change Status </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </thead> 
+                </table>
+        </div>
+
+        <div v-if="roleAdmin">
+            <div class="d-flex justify-content-between align-items-center mb-4"> 
+                        <p class = "lead"> The current drive is: <strong>[[ drive.is_approved ]]</strong>. Would you like to change it? </p> 
+                </div>
+
+                <table name = "drive" class="table table-bordered table-hover"> 
+                    <thead class ="table-dark"> 
+                        <tr> 
+                            <th> ID </th>
+                            <th> Job Title </th>
+                            <th> Job Description </th>
+                            <th> Drive Start Date </th>   
+                            <th> Drive End Date </th>
+                            <th> Status </th>
+                            <th> Is Approved by admin? </th>
+                            <th> Actions </th>
+                        </tr>
+                        <tbody>
+                            <tr>
+                                <td>[[ drive.id ]]</td>
+                                <td>[[ drive.job_title ]]</td>
+                                <td>[[ drive.job_description ]]</td>
+                                <td>[[ drive.drive_date ]]</td>
+                                <td>[[ drive.drive_end_date ]]</td>
+                                <td>[[ drive.status ]]</td>
+                                <td>[[ drive.is_approved ? 'Yes' : 'No' ]]</td>
+                                <td>
+                                    <button class="btn btn-outline-danger" @click="changeStatus"> Approve it? </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </thead> 
+                </table>
+        </div>
+
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='company/company_admin_change_drive_status.js') }}"></script>
+{% endblock %}

@@ -34,7 +34,7 @@
         </tr>
     </thead> 
     <tbody> 
-        <tr v-for="placement in activePlacements" :key="placement.id"> 
+        <tr v-for="placement in inactivePlacements" :key="placement.id"> 
             <td> [[ placement.id ]] </td>
             <td> [[ placement.job_title ]] </td>
             <td> [[ placement.drive_date ]] </td>
@@ -42,10 +42,10 @@
             <td> [[ placement.status ]] </td>
             <td> 
                 <a :href="'/api/company/view_drive/' + placement.id" class="btn btn-outline-dark me-1"> View Drive </a> 
-                <a :href="'/api/company/change_drive_status/' + placement.id" class="btn btn-outline-success"> Change Status </a>   
+                <a :href="'/api/company/change_placement_drive_status/' + placement.id" class="btn btn-outline-success"> Change Status </a>   
             </td> 
         </tr>
-        <tr v-if="activePlacements.length === 0">
+        <tr v-if="inactivePlacements.length === 0">
             <td colspan="6" class="text-center text-muted py-3">No pending placement requests found.</td>
         </tr>
     </tbody> 
@@ -61,28 +61,28 @@
         <thead class="table-dark"> 
             <tr> 
                 <th scope="col"> ID </th>
-                <th scope="col"> Name </th>
+                <th scope="col"> Job Title </th>
                 <th scope="col"> Drive Date </th>
                 <th scope="col"> End Date </th>
-                <th scope="col"> Job Title </th>
+                <th scope="col"> Job Description </th>
                 <th scope="col"> Status </th>
                 <th scope="col"> Actions </th>
             </tr>
         </thead> 
         <tbody> 
-            <tr v-for="placement in inactivePlacements" :key="placement.id"> 
+            <tr v-for="placement in activePlacements" :key="placement.id"> 
                 <td> [[ placement.id ]] </td>
-                <td> [[ placement.company_name || 'Corporate Drive' ]] </td>
+                <td> [[ placement.job_title ]] </td>
                 <td> [[ placement.drive_date || 'N/A' ]] </td>
                 <td> [[ placement.drive_end_date || 'N/A' ]] </td>
-                <td> [[ placement.job_title ]] </td>
+                <td> [[ placement.job_description ]] </td>
                 <td> [[ placement.status ]] </td>
                 <td> 
-                    <a :href="'/api/admin/placements/' + placement.id + '/applications'" class="btn btn-outline-primary btn-sm me-1"> View Applications </a>
-                    <a :href="'/api/admin/placements/' + placement.id + '/status'" class="btn btn-primary btn-sm"> Change Status </a>   
+                    <a :href="'/api/admin/placements/' + placement.id + '/applications'" class="btn btn-outline-primary me-1"> View Applications </a>
+                    <a :href="'/api/company/change_placement_drive_status/' + placement.id" class="btn btn-primary"> Change Status </a>   
                 </td> 
             </tr>
-            <tr v-if="inactivePlacements.length === 0">
+            <tr v-if="activePlacements.length === 0">
                 <td colspan="7" class="text-center text-muted py-3">No inactive placement operations found.</td>
             </tr>
         </tbody> 
