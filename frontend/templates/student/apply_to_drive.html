@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Apply to Drive
+{% endblock %}
+
+
+{% block content %}
+
+    <div id = "apply_to_drive_app" class = "container" data-drive-id="{{ drive_id }}"   data-company-name="{{ company_name }}"
+        data-about-company="{{ about_company }}"
+        data-job-title="{{ job_title }}"
+        data-job-description="{{ job_description }}"
+        data-key-skills="{{ key_skills }}"
+        data-salary-range="{{ salary_range }}"
+        data-drive-date="{{ drive_date }}"
+        data-drive-end-date="{{ drive_end_date }}"> 
+
+        <div v-if="errorMessage" class="alert alert-danger" role="alert">
+            [[ errorMessage ]]
+        </div>
+
+        <div v-if="successMessage" class="alert alert-success" role="alert">
+            [[ successMessage ]]
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4"> 
+            <h2 align = 'center' class = 'display-5'> Apply to Drive </h2> 
+        </div> 
+
+        <hr> 
+
+        <div class="d-flex justify-content-between align-items-center mb-4"> 
+                    <p class = "lead"><strong>About Company:  </strong>[[ drive.about_company ]] </p> 
+            </div> 
+
+        <hr>
+
+        <div class="d-flex justify-content-between align-items-center mb-4"> 
+                    <p class = "lead"><strong>Job Title:  </strong>[[ drive.job_title ]] </p> 
+        </div>
+
+        <hr> 
+
+        <div class="d-flex justify-content-between align-items-center mb-4"> 
+                    <p class = "lead"><strong>Job Description:   </strong>[[ drive.job_description ]] </p> 
+        </div>
+
+        <hr>
+
+        <div class="d-flex justify-content-between align-items-center mb-4"> 
+                    <p class = "lead"><strong>Key Skills:   </strong>[[ drive.key_skills ]] </p> 
+        </div>
+
+        <hr>
+
+        <div class="d-flex justify-content-between align-items-center mb-4"> 
+                    <p class = "lead"><strong>Salary Range:   </strong>[[ drive.salary_range ]] </p> 
+        </div>
+
+        <hr>
+
+        <div class="d-flex justify-content-between align-items-center mb-4"> 
+                    <p class = "lead"><strong>Drive Date  </strong>[[ drive.drive_date ]] </p> 
+        </div>
+
+        <hr>
+
+        <div class="d-flex justify-content-between align-items-center mb-4"> 
+                    <p class = "lead"><strong>Drive Deadline:   </strong>[[ drive.drive_end_date ]] </p> 
+        </div>
+
+        <hr>
+
+        <div class="d-flex justify-content-between align-items-center mb-4"> 
+                    <p class = "lead"><strong>Do you want to apply to this job?  </strong> </p> 
+        </div> 
+
+        <button class="btn btn-primary" @click="applyToDrive"> Yes </button>
+        <a :href="'/api/student/dashboard'" class="btn btn-secondary"> No </a>
+
+        <br> <br>
+    </div>
+
+{% endblock  %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='student/apply_to_drive.js') }}"></script>
+{% endblock %}

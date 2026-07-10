@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Student Dashboard - PDMS
+{% endblock %}
+
+{% block content %}
+<div id="student-dashboard-app" class="container mt-4"> 
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 align="center" class="display-5"> <p class="text-primary-emphasis"> Student Dashboard </p></h2> 
+    </div>
+
+    <div class="container mt-4 mb-4 p-0">
+        <form action="/api/auth/student_search" method="GET" class="d-flex">
+            <input class="form-control me-2" type="search" name="q" placeholder="Search companies or drives..." aria-label="Search">
+            <button class="btn btn-outline-primary" type="submit">Search</button>
+        </form>
+    </div>
+
+    <hr> 
+
+    <div class="d-flex justify-content-between align-items-center mb-4"> 
+        <h6 class="display-5"> <p class="text-primary-emphasis"> Applied Drives </p></h6>
+    </div> 
+
+    <table name="placements" class="table table-bordered table-hover"> 
+        <thead class="table-dark"> 
+            <tr> 
+                <th scope="col"> ID </th>
+                <th scope="col"> Company Name </th>
+                <th scope="col"> Drive Date </th>
+                <th scope="col"> End Date </th>
+                <th scope="col"> Job Title </th>
+                <th scope="col"> Status </th>
+                <th scope="col"> Actions </th>
+            </tr>
+        </thead> 
+        <tbody> 
+            <tr v-for="application in applications" :key="application.id"> 
+                <td> [[ application.id ]] </td>
+                <td> [[ application.company_name || 'Corporate Drive' ]] </td>
+                <td> [[ application.drive_date || 'N/A' ]] </td>
+                <td> [[ application.drive_end_date || 'N/A' ]] </td>
+                <td> [[ application.job_title ]] </td>
+                <td> [[ application.status ]] </td>
+                <td> 
+                    <a :href="'/api/student/view_application/' + application.id" class="btn btn-outline-primary me-1"> View Application </a>   
+                </td> 
+            </tr>
+            <tr v-if="applications.length === 0">
+                <td colspan="7" class="text-center text-muted py-3">No active placement operations active.</td>
+            </tr>
+        </tbody> 
+    </table>
+
+    <hr>
+
+    <div class="d-flex justify-content-between align-items-center mb-4"> 
+        <h6 class="display-5"> <p class="text-primary-emphasis"> Ongoing Placements </p></h6>
+    </div> 
+
+    <table name="placements" class="table table-bordered table-hover"> 
+        <thead class="table-dark"> 
+            <tr> 
+                <th scope="col"> ID </th>
+                <th scope="col"> Name </th>
+                <th scope="col"> Drive Date </th>
+                <th scope="col"> End Date </th>
+                <th scope="col"> Job Title </th>
+                <th scope="col"> Status </th>
+                <th scope="col"> Actions </th>
+            </tr>
+        </thead> 
+        <tbody> 
+            <tr v-for="placement in ongoing_drives" :key="placement.id"> 
+                <td> [[ placement.id ]] </td>
+                <td> [[ placement.company_name || 'Corporate Drive' ]] </td>
+                <td> [[ placement.drive_date || 'N/A' ]] </td>
+                <td> [[ placement.drive_end_date || 'N/A' ]] </td>
+                <td> [[ placement.job_title ]] </td>
+                <td> [[ placement.status ]] </td>
+                <td> 
+                    <a :href="'/api/student/view_drive/' + placement.id" class="btn btn-outline-primary me-1"> View Drive </a>
+                    <a :href="'/api/student/apply_to_drive/' + placement.id" class="btn btn-primary"> Apply to Drive </a>   
+                </td> 
+            </tr>
+            <tr v-if="ongoing_drives.length === 0">
+                <td colspan="7" class="text-center text-muted py-3">No active placement operations active.</td>
+            </tr>
+        </tbody> 
+    </table>
+
+    <div class="d-flex justify-content-between align-items-center mb-4"> 
+        <h6 class="display-5"> <p class="text-primary-emphasis"> Upcoming Placements </p></h6>
+    </div> 
+
+    <table name="placements" class="table table-bordered table-hover"> 
+        <thead class="table-dark"> 
+            <tr> 
+                <th scope="col"> ID </th>
+                <th scope="col"> Name </th>
+                <th scope="col"> Drive Date </th>
+                <th scope="col"> End Date </th>
+                <th scope="col"> Job Title </th>
+                <th scope="col"> Status </th>
+                <th scope="col"> Actions </th>
+            </tr>
+        </thead> 
+        <tbody> 
+            <tr v-for="placement in upcoming_drives" :key="placement.id"> 
+                <td> [[ placement.id ]] </td>
+                <td> [[ placement.company_name || 'Corporate Drive' ]] </td>
+                <td> [[ placement.drive_date || 'N/A' ]] </td>
+                <td> [[ placement.drive_end_date || 'N/A' ]] </td>
+                <td> [[ placement.job_title ]] </td>
+                <td> [[ placement.status ]] </td>
+                <td> 
+                    <a :href="'/api/student/view_drive/' + placement.id" class="btn btn-outline-primary me-1"> View Drive </a>  
+                </td> 
+            </tr>
+            <tr v-if="upcoming_drives.length === 0">
+                <td colspan="7" class="text-center text-muted py-3">No upcoming placement operations.</td>
+            </tr>
+        </tbody> 
+    </table>
+</div> 
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='student/dashboard.js') }}"></script>
+{% endblock %}
+
+{% endblock %}

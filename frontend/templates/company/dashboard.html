@@ -78,7 +78,8 @@
                 <td> [[ placement.job_description ]] </td>
                 <td> [[ placement.status ]] </td>
                 <td> 
-                    <a :href="'/api/admin/placements/' + placement.id + '/applications'" class="btn btn-outline-primary me-1"> View Applications </a>
+                    <a :href="'/api/company/view_drive/' + placement.id" class="btn btn-outline-dark me-1"> View Drive </a> 
+                    <a :href="'/api/company/view_student_applications/' + placement.id" class="btn btn-outline-primary me-1"> View Applications </a>
                     <a :href="'/api/company/change_placement_drive_status/' + placement.id" class="btn btn-primary"> Change Status </a>   
                 </td> 
             </tr>
@@ -92,5 +93,5 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="{{ url_for('static', filename='company_dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='company/company_dashboard.js') }}"></script>
 {% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Application Review
+{% endblock %}
+
+{% block content %}
+
+    <div id="view-application-app" class="container mt-4" data-application-id="{{ application_id }}">
+
+        <h2 class="display-5 text-center">
+                Application Review
+        </h2>
+
+        <hr>
+
+        <div v-if="errorMessage" class="alert alert-danger">
+            [[ errorMessage ]]
+        </div>
+
+        <div v-if="successMessage" class="alert alert-success">
+            [[ successMessage ]]
+        </div>
+
+        <table name = "application" class="table table-bordered table-hover">
+            <thead class ="table-dark"> 
+                <tr> 
+                    <th> ID </th>
+                    <th> Job Title </th>
+                    <th> Department </th>
+                    <th> Resume </th>
+                    <th> Date </th> 
+                </tr>
+            <tbody> 
+                <tr>
+                    <td> [[ application.id ]] </td>
+                    <td> [[ application.placement_drive.job_title ]] </td>
+                    <td> [[ application.student.department ]] </td>
+                    <td>
+                        <a v-if="application.student.resume_path" :href="'/static/uploads/resumes/' + application.student.resume_path" target="_blank" class="btn btn-outline-info">
+                            View Resume
+                        </a>
+                    <span v-else>
+                        No Resume Uploaded
+                    </span>
+                    <td> [[ application.application_date ]] </td>
+                    
+                </tr>
+            </tbody>      
+        </table>
+
+        <div class="mt-4 d-flex justify-content-end">
+            <a href="/api/student/dashboard" class="btn btn-secondary">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='student/view_application.js') }}"></script>
+{% endblock %}

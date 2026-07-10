@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    View Student Applications - PDMS
+{% endblock %}
+
+{% block content %}
+    <div id="student-application-view-drive-app" data-drive-id="{{ drive_id }}" class="container mt-4">
+        <h2 class="display-5">View Student Applications</h2>
+
+        <div v-if="errorMessage" class="alert alert-danger" role="alert">
+            [[ errorMessage ]]
+        </div>
+
+        <div v-if="successMessage" class="alert alert-success" role="alert">
+            [[ successMessage ]]
+        </div>
+
+        <div v-if="isStaff" class="mb-4">
+
+            <table name = "drive" class="table table-bordered table-hover"> 
+                <thead class ="table-dark"> 
+                    <tr> 
+                        <th> ID </th>
+                        <th> Student Name </th>
+                        <th> Department </th>
+                        <th> Status </th>   
+                        <th> Actions </th>
+                    </tr>
+                    <tbody> 
+                        <tr v-for="application in applications" :key="application.id">  
+                            <td> [[ application.id ]] </td>
+                            <td> [[ application.student_name ]] </td>
+                            <td> [[ application.department ]] </td>
+                            <td> [[ application.status ]] </td>
+                            <td>
+                                <a :href="'/api/company/change_student_application_status/' + application.id" class="btn btn-outline-dark me-1"> 
+                                    Change Status 
+                                </a>
+                            </td> 
+                        </tr>
+
+                        <tr v-if="applications.length === 0">
+                            <td colspan="5" class="text-center text-muted py-3">No applications yet.</td>
+                        </tr>
+                    </tbody> 
+                </thead> 
+            </table>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='company/company_admin_view_student_application.js') }}"></script>
+{% endblock %}
