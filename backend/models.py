@@ -68,4 +68,17 @@ class Application(db.Model):
     application_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow) 
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
+class Interview(db.Model):
+    __tablename__ = "Interviews"
+
+    id = db.Column(db.Integer, primary_key=True)
+    application_id = db.Column(db.Integer, db.ForeignKey(Application.id), nullable=False, unique=True)
+    interview_date = db.Column(db.Date, nullable=False)
+    interview_time = db.Column(db.Time, nullable=False)
+    interview_mode = db.Column(db.String(30),default='Online', nullable=False)
+    meeting_link = db.Column(db.String(500))
+    venue = db.Column(db.String(250))
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    application = db.relationship("Application", backref="interview")
 

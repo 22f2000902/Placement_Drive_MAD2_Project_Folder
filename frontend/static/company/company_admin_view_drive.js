@@ -21,6 +21,45 @@ createApp({
         },
         isStudent() {
             return this.role === 'student';
+        },
+        canApply() {
+            if (!this.drive.drive_date || !this.drive.drive_end_date) {
+                return false;
+            }
+        const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const startDate = new Date(this.drive.drive_date);
+            startDate.setHours(0, 0, 0, 0);
+
+            const endDate = new Date(this.drive.drive_end_date);
+            endDate.setHours(0, 0, 0, 0);
+
+            return today >= startDate && today <= endDate;
+        },
+        applicationMessage() {
+            if (!this.drive.drive_date || !this.drive.drive_end_date) {
+                return '';
+            }
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const startDate = new Date(this.drive.drive_date);
+            startDate.setHours(0, 0, 0, 0);
+
+            const endDate = new Date(this.drive.drive_end_date);
+            endDate.setHours(0, 0, 0, 0);
+
+            if (today < startDate) {
+                return 'Applications for this drive have not opened yet.';
+            }
+
+            if (today > endDate) {
+                return 'Applications for this drive have closed.';
+            }
+
+            return '';
         }
     },
 

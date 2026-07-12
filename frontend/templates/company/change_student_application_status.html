@@ -54,6 +54,10 @@
                                     <button class="btn btn-primary btn-sm mt-2" @click="changeStatus(application)">
                                         Update
                                     </button>
+
+                                    <a v-if="application.status.toLowerCase() === 'shortlisted'" 
+                                        :href="'/api/company/schedule_interview/' + application.id" 
+                                        class="btn btn-success btn-sm"> Schedule Interview </a>
                                 </td>
                             </tr>
                         </tbody>

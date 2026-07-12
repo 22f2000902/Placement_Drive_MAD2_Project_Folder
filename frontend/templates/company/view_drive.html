@@ -54,12 +54,8 @@
                             <td> [[ application.department ]] </td>
                             <td> [[ application.status ]] </td>
                             <td> 
-                                <a :href="'/api/company/change_drive_status/' + application.id" class="btn btn-outline-info"> View Application </a>  
+                                <a :href="'/api/company/view_student_applications/' + drive.id" class="btn btn-outline-info"> View Application </a>  
                             </td> 
-                        </tr>
-
-                        <tr v-if="applications.length === 0">
-                            <td colspan="5" class="text-center text-muted py-3">No applications yet.</td>
                         </tr>
                     </tbody> 
                 </thead> 
@@ -93,12 +89,13 @@
                             <td> [[ drive.salary_range ]] </td>
                             <td> [[ drive.status ]] </td>
                             <td> 
-                                <a :href="'/api/student/apply_to_drive/' + drive.id" class="btn btn-outline-info"> Apply to job </a>  
-                            </td> 
-                        </tr>
+                                <a :href="canApply ? '/api/student/apply_to_drive/' + drive.id : '#'" class="btn btn-primary" 
+                                :class="{ disabled: !canApply }" @click.prevent="!canApply"> Apply </a>
 
-                        <tr v-if="activePlacements.length === 0">
-                            <td colspan="8" class="text-center text-muted py-3">No drives yet.</td>
+                                    <p v-if="applicationMessage" class="text-danger mt-3">
+                                        [[ applicationMessage ]]
+                                    </p>  
+                            </td> 
                         </tr>
                     </tbody> 
                 </thead> 

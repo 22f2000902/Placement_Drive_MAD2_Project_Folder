@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Schedule Interview
+{% endblock %}
+
+{% block content %}
+
+    <div id="schedule-interview-app" class="container mt-4" data-application-id="{{ application_id }}">
+
+        <h2 class="display-5 text-center">
+            Schedule Interview
+        </h2>
+
+        <hr>
+
+        <div v-if="successMessage" class="alert alert-success">
+            [[ successMessage ]]
+        </div>
+
+        <div v-if="errorMessage" class="alert alert-danger">
+            [[ errorMessage ]]
+        </div>
+
+        <table name="application" class="table table-bordered table-hover mb-4">
+            <thead class="table-dark">
+                <tr>
+                    <th> ID </th>
+                    <th> Student Name </th>
+                    <th> Department </th>
+                    <th> Status </th>
+                    <th> Resume </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>[[ application.id ]]</td>
+                    <td>[[ application.full_name ]]</td>
+                    <td>[[ application.department ]]</td>
+                    <td>[[ application.status ]]</td>
+                    <td><a :href="application.resume_path" target="_blank">View Resume</a></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="mb-4">
+            <label class="form-label">
+                <strong>Interview Date</strong>
+            </label>
+
+            <input type="date" class="form-control" v-model="interview_date">
+        </div>
+
+        <div class="mb-4">
+        <label class="form-label">
+            <strong>Select Interview Time Slot</strong>
+        </label>
+
+        <div class="row g-3">
+
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">12:00 PM - 1:00 PM</h5>
+                        <button
+                            class="btn btn-outline-primary"
+                            @click="selectedSlot='12:00-13:00'">
+                            Select Slot
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">1:00 PM - 2:00 PM</h5>
+                        <button
+                            class="btn btn-outline-primary"
+                            @click="selectedSlot='13:00-14:00'">
+                            Select Slot
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">2:00 PM - 3:00 PM</h5>
+                        <button
+                            class="btn btn-outline-primary"
+                            @click="selectedSlot='14:00-15:00'">
+                            Select Slot
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">3:00 PM - 4:00 PM</h5>
+                        <button
+                            class="btn btn-outline-primary"
+                            @click="selectedSlot='15:00-16:00'">
+                            Select Slot
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">4:00 PM - 5:00 PM</h5>
+                        <button
+                            class="btn btn-outline-primary"
+                            @click="selectedSlot='16:00-17:00'">
+                            Select Slot
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div v-if="selectedSlot" class="alert alert-info mt-3">
+        Selected Slot: <strong>[[ selectedSlot ]]</strong>
+    </div>
+
+    <div class="mt-4">
+        <button class="btn btn-success" @click="scheduleInterview" :disabled="!selectedSlot">
+            Schedule Interview
+        </button>
+
+        <a href="/api/company/dashboard" class="btn btn-secondary ms-2">
+            Cancel
+        </a>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='company/company_schedule_interview.js') }}"></script>
+{% endblock %}
