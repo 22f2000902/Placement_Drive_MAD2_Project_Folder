@@ -78,9 +78,6 @@ class Interview(db.Model):
     interview_date = db.Column(db.Date, nullable=False)
     interview_time = db.Column(db.Time, nullable=False)
     interview_mode = db.Column(db.String(30),default='Online', nullable=False)
-    meeting_link = db.Column(db.String(500))
-    venue = db.Column(db.String(250))
-    notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     application = db.relationship("Application", backref="interview")
 

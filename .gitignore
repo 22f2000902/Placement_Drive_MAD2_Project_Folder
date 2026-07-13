@@ -5,3 +5,5 @@ instance
 .env
 frontend/static/uploads/resumes
 frontend/static/exports
+celerybeat-schedule.db
+data_feeder.py

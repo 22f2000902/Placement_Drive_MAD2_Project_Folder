@@ -9,6 +9,7 @@ import os
 from werkzeug.utils import secure_filename
 from flask import current_app
 from celery.result import AsyncResult
+from backend.cache_config import cache
 
 auth_bp = Blueprint('auth_bp', __name__)
 admin_bp = Blueprint('admin_bp', __name__)
@@ -457,6 +458,7 @@ def student_application_status(id):
         
         application.status = new_status
         db.session.commit()
+        cache.delete(f"student_dashboard_{application.student_id}")
 
         return jsonify({
             'message': f'Application status successfully updated to {new_status}!',
@@ -929,14 +931,11 @@ def create_interview(application_id):
         interview_time=datetime.strptime(
             data["interview_time"],
             "%H:%M"
-        ).time(),
-        meeting_link=data.get("meeting_link"),
-        venue=data.get("venue"),
-        notes=data.get("notes")
-    )
+        ).time())
 
     db.session.add(interview)
     application.status = "Interview Scheduled"
+    cache.delete(f"student_dashboard_{application.student_id}")
     db.session.commit()
 
     return jsonify({
@@ -957,48 +956,59 @@ def student_dashboard():
             return jsonify({'error': "Unauthorized access"}), 403
         
         student_id = get_jwt_identity()
+        cache_key = f"student_dashboard_{student_id}"
+        cached_response = cache.get(cache_key)
+
+        if cached_response:
+            return jsonify(cached_response), 200
         applications = Application.query.filter_by(student_id=student_id).order_by(Application.id.asc()).all()
         ongoing_drives = PlacementDrive.query.filter(PlacementDrive.drive_date <= datetime.utcnow().date(), PlacementDrive.drive_end_date >= datetime.utcnow().date(), PlacementDrive.status == 'active', PlacementDrive.is_approved == True).all()
         upcoming_drives = PlacementDrive.query.filter(PlacementDrive.drive_date > datetime.utcnow().date(), PlacementDrive.status == 'active', PlacementDrive.is_approved == True).all()
         interviews = Interview.query.join(Application).filter(Application.student_id == student_id).order_by(Interview.interview_date.asc()).all()
 
-        return jsonify({
-            'user_id': student_id,
-            'applications': [{
-                'id': a.id,
-                'placement_drive_id': a.placement_drive_id,
-                'company_name': a.placement_drive.company.company_name,
-                'job_title': a.placement_drive.job_title,
-                'drive_date': a.placement_drive.drive_date.isoformat() if a.placement_drive.drive_date else None,
-                'drive_end_date': a.placement_drive.drive_end_date.isoformat() if a.placement_drive.drive_end_date else None,
-                'status': a.status,
-                'application_date': (a.application_date.isoformat() if a.application_date else None)
-            } for a in applications], 
-            'ongoing_drives': [{
-                'id': d.id,
-                'company_name': d.company.company_name,
-                'job_title': d.job_title,
-                'drive_date': d.drive_date.isoformat() if d.drive_date else None,
-                'drive_end_date': d.drive_end_date.isoformat() if d.drive_end_date else None,
-                'status': d.status
-            } for d in ongoing_drives],
-            'upcoming_drives': [{
-                'id': d.id,
-                'company_name': d.company.company_name,
-                'job_title': d.job_title,
-                'drive_date': d.drive_date.isoformat() if d.drive_date else None,
-                'drive_end_date': d.drive_end_date.isoformat() if d.drive_end_date else None,
-                'status': d.status
-            } for d in upcoming_drives],
-            'interviews': [{
-                'id': i.id,
-                'company_name': i.application.placement_drive.company.company_name,
-                'job_title': i.application.placement_drive.job_title,
-                'interview_date': i.interview_date.isoformat() if i.interview_date else None,
-                'interview_time': i.interview_time.strftime('%H:%M') if i.interview_time else None,
-                'interview_mode': i.interview_mode
-            } for i in interviews]
-        }), 200
+        response = {'user_id': student_id,
+                'applications': [{
+                    'id': a.id,
+                    'placement_drive_id': a.placement_drive_id,
+                    'company_name': a.placement_drive.company.company_name,
+                    'job_title': a.placement_drive.job_title,
+                    'drive_date': a.placement_drive.drive_date.isoformat() if a.placement_drive.drive_date else None,
+                    'drive_end_date': a.placement_drive.drive_end_date.isoformat() if a.placement_drive.drive_end_date else None,
+                    'status': a.status,
+                    'application_date': (a.application_date.isoformat() if a.application_date else None)
+                } for a in applications], 
+                'ongoing_drives': [{
+                    'id': d.id,
+                    'company_name': d.company.company_name,
+                    'job_title': d.job_title,
+                    'drive_date': d.drive_date.isoformat() if d.drive_date else None,
+                    'drive_end_date': d.drive_end_date.isoformat() if d.drive_end_date else None,
+                    'status': d.status
+                } for d in ongoing_drives],
+                'upcoming_drives': [{
+                    'id': d.id,
+                    'company_name': d.company.company_name,
+                    'job_title': d.job_title,
+                    'drive_date': d.drive_date.isoformat() if d.drive_date else None,
+                    'drive_end_date': d.drive_end_date.isoformat() if d.drive_end_date else None,
+                    'status': d.status
+                } for d in upcoming_drives],
+                'interviews': [{
+                    'id': i.id,
+                    'company_name': i.application.placement_drive.company.company_name,
+                    'job_title': i.application.placement_drive.job_title,
+                    'interview_date': i.interview_date.isoformat() if i.interview_date else None,
+                    'interview_time': i.interview_time.strftime('%H:%M') if i.interview_time else None,
+                    'interview_mode': i.interview_mode
+                } for i in interviews]}
+
+        cache.set(
+                cache_key,
+                response,
+                timeout=300
+            )
+
+        return jsonify(response), 200
 
 #api route for student to apply to a placement drive
 @student_bp.route('/apply_to_drive/<int:drive_id>', methods=['GET', 'POST'])
@@ -1058,6 +1068,7 @@ def apply_to_drive(drive_id):
 
     db.session.add(new_application)
     db.session.commit()
+    cache.delete(f"student_dashboard_{student_id}")
 
     return jsonify({
         'message': 'Application submitted successfully!',
@@ -1214,6 +1225,7 @@ def edit_profile(id):
                 resume.save(file_path)
                 student.resume_path = filename
             db.session.commit()
+            cache.delete(f"student_dashboard_{student.id}")
 
             return jsonify({
                 "message": "Profile updated successfully."

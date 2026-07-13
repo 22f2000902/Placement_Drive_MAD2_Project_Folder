@@ -9,6 +9,7 @@ from datetime import datetime
 from backend.routes import auth_bp, student_bp, company_bp, admin_bp
 from backend.celery_config import make_celery
 from backend.mail_config import mail
+from backend.cache_config import cache
 
 jwt = JWTManager()
 
@@ -34,6 +35,7 @@ def createApp():
 
 app = createApp()
 mail.init_app(app)
+cache.init_app(app)
 celery = make_celery(app)
 import task
 
@@ -44,7 +46,7 @@ with app.app_context():
     admin = Admin.query.first()
     if not admin: 
         password_hash = generate_password_hash('admin123')
-        admin = Admin(email='admin@gmail.com', name='admin', password_hash=password_hash)
+        admin = Admin(email='diya.gup2310@gmail.com', name='admin', password_hash=password_hash)
         db.session.add(admin)
         db.session.commit()
 

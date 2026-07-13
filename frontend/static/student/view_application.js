@@ -11,7 +11,8 @@ createApp({
             application: {
                 student: {},
                 placement_drive: {},
-                company: {}
+                company: {},
+                status: {}
             },
             successMessage: '',
             errorMessage: ''

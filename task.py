@@ -3,10 +3,10 @@ import os
 from flask import current_app
 from app import celery
 from backend.models import Application
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from flask_mail import Message
 from backend.mail_config import mail
-from backend.models import PlacementDrive, Student, Application, Interview
+from backend.models import PlacementDrive, Student, Application, Interview, Admin
 
 @celery.task
 def export_student_applications(student_id):
@@ -125,3 +125,102 @@ def daily_reminder():
             """
 
         mail.send(msg)
+
+@celery.task
+def monthly_report():
+    today = datetime.today()
+    first_day = today.replace(
+        day=1,
+        hour=0,
+        minute=0,
+        second=0,
+        microsecond=0
+    )
+
+    drives_conducted = PlacementDrive.query.filter(
+        PlacementDrive.drive_date >= first_day.date(),
+        PlacementDrive.drive_date <= today.date()
+    ).count()
+
+    students_applied = Application.query.filter(
+        Application.application_date >= first_day
+    ).count()
+
+    students_selected = Application.query.filter_by(
+        status="offer"
+    ).count()
+
+    admin = Admin.query.first()
+
+    if not admin:
+        return
+
+    html = f"""
+    <html>
+    <head>
+        <style>
+            body {{
+                font-family: Arial, sans-serif;
+            }}
+            table {{
+                border-collapse: collapse;
+                width: 60%;
+            }}
+            th, td {{
+                border: 1px solid black;
+                padding: 8px;
+                text-align: left;
+            }}
+            th {{
+                background-color: #f2f2f2;
+            }}
+        </style>
+    </head>
+
+    <body>
+
+    <h2>Monthly Placement Activity Report</h2>
+
+    <p>Hello Admin,</p>
+
+    <p>Please find this month's placement activity summary below.</p>
+
+    <table>
+        <tr>
+            <th>Metric</th>
+            <th>Count</th>
+        </tr>
+
+        <tr>
+            <td>Placement Drives Conducted</td>
+            <td>{drives_conducted}</td>
+        </tr>
+
+        <tr>
+            <td>Students Applied</td>
+            <td>{students_applied}</td>
+        </tr>
+
+        <tr>
+            <td>Students Selected</td>
+            <td>{students_selected}</td>
+        </tr>
+    </table>
+
+    <br>
+
+    <p>Regards,<br>
+    Placement Drive Management System (PDMS)</p>
+
+    </body>
+    </html>
+    """
+
+    msg = Message(
+        subject="Monthly Placement Activity Report",
+        recipients=[admin.email]
+    )
+
+    msg.html = html
+
+    mail.send(msg)

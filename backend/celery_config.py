@@ -21,10 +21,12 @@ def make_celery(app):
     celery.conf.beat_schedule = {
         "daily-placement-reminders": {
             "task": "task.daily_reminder",
-            "schedule": crontab(hour=15, minute=0)
+            "schedule": crontab(hour=2, minute=50)
+        },
+        "monthly-placement-report": {
+            "task": "task.monthly_report",
+            "schedule": crontab(hour=2, minute=50)
         }
     }
-
     celery.conf.timezone = "Asia/Kolkata"
-
     return celery
