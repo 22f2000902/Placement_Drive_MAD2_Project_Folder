@@ -1253,3 +1253,99 @@ def student_profile(id):
                 "application_date": a.application_date.isoformat() if a.application_date else None
             } for a in applications]
         }), 200
+    
+#common search api for students and admin    
+#common search route
+@auth_bp.route('/search', methods=['GET', 'POST'])
+def search():
+    if request.method == "GET":
+        return render_template("search_result.html")
+    
+    verify_jwt_in_request()
+    claims = get_jwt()
+    role = claims.get("role")
+    user_id = int(get_jwt_identity())
+
+    data = request.get_json()
+    query = data.get("query", "").strip()
+
+    if not query:
+        return jsonify({
+            "students": [],
+            "companies": [],
+            "drives": [],
+            "applications": []
+        }), 200
+
+    students = []
+    companies = []
+    drives = []
+    applications = []
+
+    if role == "student":
+        companies = Company.query.filter(Company.company_name.ilike(f"%{query}%")).all()
+
+        drives = PlacementDrive.query.filter(db.or_(PlacementDrive.job_title.ilike(f"%{query}%"), 
+                                                    PlacementDrive.key_skills.ilike(f"%{query}%"),
+                                                    PlacementDrive.status.ilike(f"%{query}%")),PlacementDrive.is_approved == True).all()
+
+    elif role == "company":
+        drives = PlacementDrive.query.filter(PlacementDrive.company_id == user_id, db.or_(PlacementDrive.job_title.ilike(f"%{query}%"), PlacementDrive.key_skills.ilike(f"%{query}%"), PlacementDrive.status.ilike(f"%{query}%"))).all()
+
+        applications = Application.query.join(Student).join(PlacementDrive).filter(PlacementDrive.company_id == user_id,
+            db.or_(Student.full_name.ilike(f"%{query}%"), Student.department.ilike(f"%{query}%"), Student.roll_number.ilike(f"%{query}%"), Application.status.ilike(f"%{query}%"))).all()
+
+    elif role == "admin":
+        students = Student.query.filter(
+            db.or_(Student.full_name.ilike(f"%{query}%"),Student.department.ilike(f"%{query}%"),
+                   Student.roll_number.ilike(f"%{query}%"),Student.email.ilike(f"%{query}%"))).all()
+
+        companies = Company.query.filter(db.or_(Company.company_name.ilike(f"%{query}%"),Company.email.ilike(f"%{query}%"))).all()
+
+        drives = PlacementDrive.query.join(Company).filter(
+            db.or_(PlacementDrive.job_title.ilike(f"%{query}%"),PlacementDrive.key_skills.ilike(f"%{query}%"),
+                   PlacementDrive.status.ilike(f"%{query}%"),
+                   Company.company_name.ilike(f"%{query}%"))).all()
+
+        applications = Application.query.join(Student).join(PlacementDrive).join(Company).filter(
+            db.or_(Student.full_name.ilike(f"%{query}%"), Company.company_name.ilike(f"%{query}%"), 
+                   PlacementDrive.job_title.ilike(f"%{query}%"), 
+                   Application.status.ilike(f"%{query}%"))).all()
+
+    else:
+        return jsonify({
+            "error": "Unauthorized access."
+        }), 403
+
+    return jsonify({
+        "students": [{
+            "id": s.id,
+            "full_name": s.full_name,
+            "department": s.department,
+            "roll_number": s.roll_number,
+            "email": s.email
+        } for s in students],
+
+        "companies": [{
+            "id": c.id,
+            "company_name": c.company_name,
+            "email": c.email,
+            "status": c.status
+        } for c in companies],
+
+        "drives": [{
+            "id": d.id,
+            "company_name": d.company.company_name,
+            "job_title": d.job_title,
+            "drive_date": d.drive_date.isoformat() if d.drive_date else None,
+            "drive_end_date": d.drive_end_date.isoformat() if d.drive_end_date else None,
+            "status": d.status
+        } for d in drives],
+
+        "applications": [{
+            "id": a.id,
+            "student_name": a.student.full_name,
+            "company_name": a.placement_drive.company.company_name,
+            "job_title": a.placement_drive.job_title,
+            "status": a.status
+        } for a in applications]}), 200

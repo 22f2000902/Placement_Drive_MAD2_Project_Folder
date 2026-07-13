@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Search Results
+{% endblock %}
+
+{% block content %}
+
+<div id="search-app" class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="display-5">Search</h2>
+    </div>
+
+    <div v-if="successMessage" class="alert alert-success">
+        [[ successMessage ]]
+    </div>
+
+    <div v-if="errorMessage" class="alert alert-danger">
+        [[ errorMessage ]]
+    </div>
+
+    <div class="container mb-4 p-0">
+        <form @submit.prevent="search" class="d-flex">
+            <input class="form-control me-2" type="search" v-model="query" placeholder="Search students, companies, drives or applications...">
+            <button class="btn btn-outline-primary" type="submit">Search</button>
+        </form>
+    </div>
+
+    <div v-if="role=='admin'">
+
+        <h4>Students</h4>
+
+        <table name="students" class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Department</th>
+                    <th scope="col">Roll Number</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="student in students" :key="student.id">
+                    <td>[[ student.id ]]</td>
+                    <td>[[ student.full_name ]]</td>
+                    <td>[[ student.department ]]</td>
+                    <td>[[ student.roll_number ]]</td>
+                    <td>[[ student.email ]]</td>
+                    <td><a :href="'/api/admin/student_profile/' + student.id" class="btn btn-outline-primary">View</a></td>
+                </tr>
+                <tr v-if="students.length===0">
+                    <td colspan="6" class="text-center text-muted py-3">No students found.</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+    <h4>Companies</h4>
+
+    <table name="companies" class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Company Name</th>
+                <th scope="col">Email</th>
+                <th scope="col">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="company in companies" :key="company.id">
+                <td>[[ company.id ]]</td>
+                <td>[[ company.company_name ]]</td>
+                <td>[[ company.email ]]</td>
+                <td>[[ company.status ]]</td>
+            </tr>
+            <tr v-if="companies.length===0">
+                <td colspan="4" class="text-center text-muted py-3">No companies found.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h4>Placement Drives</h4>
+
+    <table name="drives" class="table table-bordered table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Company Name</th>
+                <th scope="col">Drive Date</th>
+                <th scope="col">End Date</th>
+                <th scope="col">Job Title</th>
+                <th scope="col">Status</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="drive in drives" :key="drive.id">
+                <td>[[ drive.id ]]</td>
+                <td>[[ drive.company_name ]]</td>
+                <td>[[ drive.drive_date ]]</td>
+                <td>[[ drive.drive_end_date ]]</td>
+                <td>[[ drive.job_title ]]</td>
+                <td>[[ drive.status ]]</td>
+                <td>
+                    <a v-if="role=='student'" :href="'/api/student/view_drive/' + drive.id" class="btn btn-outline-primary">View</a>
+                    <a v-if="role=='company'" :href="'/api/company/view_drive/' + drive.id" class="btn btn-outline-primary">View</a>
+                    <a v-if="role=='admin'" :href="'/api/admin/view_drive/' + drive.id" class="btn btn-outline-primary">View</a>
+                </td>
+            </tr>
+            <tr v-if="drives.length===0">
+                <td colspan="7" class="text-center text-muted py-3">No placement drives found.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div v-if="role!='student'">
+
+        <h4>Applications</h4>
+
+        <table name="applications" class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Student Name</th>
+                    <th scope="col">Company Name</th>
+                    <th scope="col">Job Title</th>
+                    <th scope="col">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="application in applications" :key="application.id">
+                    <td>[[ application.id ]]</td>
+                    <td>[[ application.student_name ]]</td>
+                    <td>[[ application.company_name ]]</td>
+                    <td>[[ application.job_title ]]</td>
+                    <td>[[ application.status ]]</td>
+                </tr>
+                <tr v-if="applications.length===0">
+                    <td colspan="5" class="text-center text-muted py-3">No applications found.</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='search.js') }}"></script>
+{% endblock %}
