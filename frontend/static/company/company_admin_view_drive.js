@@ -35,7 +35,11 @@ createApp({
             const endDate = new Date(this.drive.drive_end_date);
             endDate.setHours(0, 0, 0, 0);
 
-            return today >= startDate && today <= endDate;
+            return (
+                today >= startDate &&
+                today <= endDate &&
+                this.drive.is_eligible
+            );
         },
         applicationMessage() {
             if (!this.drive.drive_date || !this.drive.drive_end_date) {
@@ -57,6 +61,10 @@ createApp({
 
             if (today > endDate) {
                 return 'Applications for this drive have closed.';
+            }
+
+            if (!this.drive.is_eligible) {
+                return `You are not eligible to apply. Minimum CGPA required is ${this.drive.minimum_cgpa}.`;
             }
 
             return '';

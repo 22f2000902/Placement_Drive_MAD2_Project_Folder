@@ -93,9 +93,9 @@ createApp({
                 case 'applied':
                     return ['shortlisted', 'rejected'];
                 case 'shortlisted':
-                    return ['interview', 'rejected'];
-                case 'interview':
-                    return ['selected', 'rejected'];
+                    return ['interview scheduled', 'rejected'];
+                case 'interview scheduled':
+                    return ['offer', 'rejected'];
                 case 'selected':
                 case 'rejected':
                     return [];

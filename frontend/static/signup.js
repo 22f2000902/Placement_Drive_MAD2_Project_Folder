@@ -15,6 +15,7 @@ createApp({
                 about_company: '',
                 department: '',
                 roll_number: '',
+                cgpa: '',
                 errorMessage: ''
         };
     },
@@ -73,6 +74,7 @@ createApp({
             if (this.roleStudent) {
                 signupData.department = this.department;
                 signupData.roll_number = this.roll_number;
+                signupData.cgpa = this.cgpa;
             }
 
             try {

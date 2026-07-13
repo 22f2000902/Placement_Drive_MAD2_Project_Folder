@@ -83,14 +83,15 @@ def signup(role):
             department = data.get("department", None)
             full_name = data.get("full_name", None)
             phone_number = data.get("phone_number", None)
+            cgpa = data.get("cgpa", None)
 
-            if not roll_number or not department or not full_name or not phone_number:
+            if not roll_number or not department or not full_name or not phone_number or not cgpa:
                 return jsonify({'error': 'All fields are required for student registration'}), 400
             
             if Student.query.filter_by(email=email).first() or Student.query.filter_by(roll_number=roll_number).first():
                 return jsonify({'error': 'Email or roll number already exists'}), 400
             
-            new_student = Student(email=email, password_hash=password_hash, roll_number=roll_number, department=department, full_name=full_name, phone_number=phone_number)
+            new_student = Student(email=email, password_hash=password_hash, roll_number=roll_number, department=department, full_name=full_name, phone_number=phone_number, cgpa=cgpa)
 
             db.session.add(new_student)
             db.session.commit()
@@ -558,6 +559,7 @@ def create_drive():
         key_skills = data.get('key_skills')
         drive_date_str = data.get('drive_date')
         drive_end_date_str = data.get('drive_end_date')
+        required_cgpa=data.get("required_cgpa")
 
         try:
             drive_date = datetime.fromisoformat(drive_date_str) if drive_date_str else None
@@ -573,6 +575,7 @@ def create_drive():
             key_skills=key_skills,
             drive_date=drive_date,
             drive_end_date=drive_end_date,
+            required_cgpa=required_cgpa,
             status='active',
             is_approved=False
         )
@@ -605,6 +608,11 @@ def view_drive(drive_id):
             return jsonify({'error': 'Unauthorized access'}), 403
 
         drive = PlacementDrive.query.get(drive_id)
+        if role == "student":
+            student = Student.query.get(user_id)
+
+            if not student:
+                return jsonify({'error': 'Student not found'}), 404
 
         if not drive:
             return jsonify({'error': 'Placement drive not found'}), 404
@@ -617,11 +625,9 @@ def view_drive(drive_id):
 
         response = {
             'id': drive.id,
-            'company': {
-                'id': drive.company.id,
-                'company_name': drive.company.company_name,
-                'about_company': drive.company.about_company
-            },
+            'company_id': drive.company.id,
+            'company_name': drive.company.company_name,
+            'about_company': drive.company.about_company,
             'job_title': drive.job_title,
             'job_description': drive.job_description,
             'salary_range': drive.salary_range,
@@ -629,8 +635,13 @@ def view_drive(drive_id):
             'drive_date': drive.drive_date.isoformat() if drive.drive_date else None,
             'drive_end_date': drive.drive_end_date.isoformat() if drive.drive_end_date else None,
             'status': drive.status,
-            'is_approved': drive.is_approved
+            'is_approved': drive.is_approved,
+            'required_cgpa': drive.required_cgpa
         }
+
+        if role == "student":
+            response["student_cgpa"] = student.cgpa
+            response["is_eligible"] = student.cgpa >= drive.required_cgpa
 
         # Only admin and company should receive applicant details
         if role in ['admin', 'company']:
@@ -729,7 +740,7 @@ def change_student_application_status(id):
             if not drive:
                 return jsonify({'error': 'Placement drive not found'}), 404
                     
-            company_allowed_options = ['shortlisted', 'interview', 'offer', 'rejected']
+            company_allowed_options = ['shortlisted', 'interview scheduled', 'offer', 'rejected']
 
             if new_status not in company_allowed_options:
                 return jsonify({'error': f'Companies can only transition status to: {", ".join(company_allowed_options)}'}), 400
@@ -739,7 +750,7 @@ def change_student_application_status(id):
 
         elif role == 'admin':
 
-            admin_allowed_options = ['shortlisted', 'interview', 'offer', 'rejected', 'inactive', 'placed']
+            admin_allowed_options = ['shortlisted', 'interview scheduled', 'offer', 'rejected', 'inactive', 'placed']
             if new_status not in admin_allowed_options:
                 return jsonify({'error': f'Admin can only transition status to: {", ".join(admin_allowed_options)}'}), 400
 
@@ -850,6 +861,7 @@ def schedule_interview(application_id):
         "current_status": application.status
     }), 200
 
+#api route to post the intervew schedule in db
 @company_bp.route('/create_interview/<int:application_id>', methods=['POST'])
 def create_interview(application_id):
     verify_jwt_in_request()
@@ -903,6 +915,7 @@ def create_interview(application_id):
         "message": "Interview scheduled successfully!"
     }), 201
 
+#api route for student dashboard
 @student_bp.route('/dashboard', methods=['GET', 'POST'])
 def student_dashboard():
     if request.method == 'GET':
@@ -919,6 +932,7 @@ def student_dashboard():
         applications = Application.query.filter_by(student_id=student_id).order_by(Application.id.asc()).all()
         ongoing_drives = PlacementDrive.query.filter(PlacementDrive.drive_date <= datetime.utcnow().date(), PlacementDrive.drive_end_date >= datetime.utcnow().date(), PlacementDrive.status == 'active', PlacementDrive.is_approved == True).all()
         upcoming_drives = PlacementDrive.query.filter(PlacementDrive.drive_date > datetime.utcnow().date(), PlacementDrive.status == 'active', PlacementDrive.is_approved == True).all()
+        interviews = Interview.query.join(Application).filter(Application.student_id == student_id).order_by(Interview.interview_date.asc()).all()
 
         return jsonify({
             'applications': [{
@@ -946,9 +960,18 @@ def student_dashboard():
                 'drive_date': d.drive_date.isoformat() if d.drive_date else None,
                 'drive_end_date': d.drive_end_date.isoformat() if d.drive_end_date else None,
                 'status': d.status
-            } for d in upcoming_drives]
+            } for d in upcoming_drives],
+            'interviews': [{
+                'id': i.id,
+                'company_name': i.application.placement_drive.company.company_name,
+                'job_title': i.application.placement_drive.job_title,
+                'interview_date': i.interview_date.isoformat() if i.interview_date else None,
+                'interview_time': i.interview_time.strftime('%H:%M') if i.interview_time else None,
+                'interview_mode': i.interview_mode
+            } for i in interviews]
         }), 200
 
+#api route for student to apply to a placement drive
 @student_bp.route('/apply_to_drive/<int:drive_id>', methods=['GET', 'POST'])
 def apply_to_drive(drive_id):
 
@@ -978,6 +1001,15 @@ def apply_to_drive(drive_id):
         return jsonify({'error': 'Unauthorized access'}), 403
 
     student_id = get_jwt_identity()
+    student = Student.query.get(student_id)
+
+    if not student:
+        return jsonify({'error': 'Student not found'}), 404
+
+    if student.cgpa < drive.required_cgpa:
+        return jsonify({
+            'error': f'You are not eligible. Minimum CGPA required is {drive.required_cgpa}.'
+        }), 403
 
     existing_application = Application.query.filter_by(
         student_id=student_id,
@@ -1003,6 +1035,7 @@ def apply_to_drive(drive_id):
         'application_id': new_application.id
     }), 201
 
+#api route for student to view their application details
 @student_bp.route('/view_application/<int:application_id>', methods=['GET', 'POST'])
 def view_application(application_id):
     if request.method == 'GET':
@@ -1053,7 +1086,6 @@ def view_application(application_id):
             }
             }), 200
     
-
 #profile pages for company and student with api route to get profile details for both company and student
 @company_bp.route('/profile/<int:id>', methods=['GET', 'POST'])
 @student_bp.route('/profile/<int:id>', methods=['GET', 'POST'])

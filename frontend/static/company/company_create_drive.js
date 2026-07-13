@@ -13,6 +13,7 @@ createApp({
             key_skills: '',
             successMessage: '',
             errorMessage: '',
+            required_cgpa: '',
             isSubmitting: false
         };
     },
@@ -46,7 +47,8 @@ createApp({
                 drive_date: this.drive_date,
                 drive_end_date: this.drive_end_date,
                 salary_range: this.salary_range,
-                key_skills: this.key_skills
+                key_skills: this.key_skills,
+                required_cgpa: this.required_cgpa
             };
 
             try {
@@ -75,6 +77,7 @@ createApp({
                 this.drive_end_date = '';
                 this.salary_range = '';
                 this.key_skills = '';
+                this.required_cgpa = '';
 
                 setTimeout(() => {
                     window.location.href = '/api/company/placement_drives';

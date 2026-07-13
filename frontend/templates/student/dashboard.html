@@ -56,6 +56,36 @@
     <hr>
 
     <div class="d-flex justify-content-between align-items-center mb-4"> 
+        <h6 class="display-5"> <p class="text-primary-emphasis"> Interviews Scheduled </p></h6>
+    </div> 
+
+    <table name="interview" class="table table-bordered table-hover"> 
+        <thead class="table-dark"> 
+            <tr> 
+                <th scope="col"> ID </th>
+                <th scope="col"> Company Name </th>
+                <th scope="col"> Interview Date </th>
+                <th scope="col"> Job Title </th>
+                <th scope="col"> Interview Time </th>
+            </tr>
+        </thead> 
+        <tbody> 
+            <tr v-for="interview in interviews" :key="interview.id"> 
+                <td> [[ interview.id ]] </td>
+                <td> [[ interview.company_name ]] </td>
+                <td> [[ interview.interview_date || 'N/A' ]] </td>
+                <td> [[ interview.job_title ]] </td>
+                <td> [[ interview.interview_time || 'N/A' ]] </td>
+            </tr>
+            <tr v-if="interviews.length === 0">
+                <td colspan="7" class="text-center text-muted py-3">No active placement operations active.</td>
+            </tr>
+        </tbody> 
+    </table>
+
+    <hr>
+
+    <div class="d-flex justify-content-between align-items-center mb-4"> 
         <h6 class="display-5"> <p class="text-primary-emphasis"> Ongoing Placements </p></h6>
     </div> 
 
@@ -80,6 +110,7 @@
                 <td> [[ placement.job_title ]] </td>
                 <td> [[ placement.status ]] </td>
                 <td> 
+                    <a :href="'/api/student/view_drive/' + placement.id" class="btn btn-outline-primary me-1"> View Drive </a>
                     <a :href="'/api/student/apply_to_drive/' + placement.id" class="btn btn-primary"> Apply to Drive </a>   
                 </td> 
             </tr>

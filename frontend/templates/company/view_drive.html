@@ -19,7 +19,7 @@
         <div v-if="isStaff" class="mb-4">
             
             <div class="d-flex justify-content-between align-items-center mb-4"> 
-                    <p class = "lead"><strong>About Company:  </strong>[[ drive.company.about_company ]] </p> 
+                    <p class = "lead"><strong>About Company:  </strong>[[ drive.about_company ]] </p> 
             </div>
 
             <div class="d-flex justify-content-between align-items-center mb-4"> 
@@ -66,6 +66,32 @@
             <div class="d-flex justify-content-between align-items-center mb-4"> 
                 <p class = "lead"><strong>About Company:  </strong>[[ drive.company.about_company ]] </p> 
             </div>
+
+            <hr>
+
+            <h5 class="text-primary-emphasis"> Eligibility 
+                
+            </h5>
+
+                <p class="lead"> <strong>Minimum CGPA Required:</strong>
+                    [[ drive.minimum_cgpa ]]
+                </p>
+
+                <p class="lead"> <strong>Your CGPA:</strong>
+                    [[ drive.student_cgpa ]]
+                </p>
+
+                <div v-if="drive.is_eligible" class="alert alert-success">
+                    You are eligible to apply.
+                    (Your CGPA: [[ drive.student_cgpa ]] / Required: [[ drive.minimum_cgpa ]])
+                </div>
+
+                <div v-else class="alert alert-danger">
+                    You are not eligible to apply.
+                    (Your CGPA: [[ drive.student_cgpa ]] / Required: [[ drive.minimum_cgpa ]])
+                </div>
+
+            <hr>
 
             <table name = "drive" class="table table-bordered table-hover"> 
                 <thead class ="table-dark"> 

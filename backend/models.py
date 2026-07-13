@@ -22,6 +22,7 @@ class Student(db.Model):
     phone_number = db.Column(db.Integer, nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     resume_path = db.Column(db.String(250), nullable=True)
+    cgpa = db.Column(db.Float, nullable=False)
 
     applications = db.relationship('Application', backref='student', lazy=True)
 
@@ -51,6 +52,7 @@ class PlacementDrive(db.Model):
     job_description = db.Column(db.String(1050), nullable=False)
     salary_range = db.Column(db.String(100), nullable=False)
     key_skills = db.Column(db.String(250), nullable=False)
+    required_cgpa = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(50), nullable=False, default='inactive')
     is_approved = db.Column(db.Boolean, default=False)
 
