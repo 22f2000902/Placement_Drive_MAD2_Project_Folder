@@ -5,6 +5,9 @@ from datetime import datetime,timezone
 from werkzeug.security import check_password_hash, generate_password_hash
 from backend.database import db     
 from flask_jwt_extended import verify_jwt_in_request
+import os
+from werkzeug.utils import secure_filename
+from flask import current_app
 
 auth_bp = Blueprint('auth_bp', __name__)
 admin_bp = Blueprint('admin_bp', __name__)
@@ -935,6 +938,7 @@ def student_dashboard():
         interviews = Interview.query.join(Application).filter(Application.student_id == student_id).order_by(Interview.interview_date.asc()).all()
 
         return jsonify({
+            'user_id': student_id,
             'applications': [{
                 'id': a.id,
                 'placement_drive_id': a.placement_drive_id,
@@ -1086,46 +1090,166 @@ def view_application(application_id):
             }
             }), 200
     
-#profile pages for company and student with api route to get profile details for both company and student
-@company_bp.route('/profile/<int:id>', methods=['GET', 'POST'])
-@student_bp.route('/profile/<int:id>', methods=['GET', 'POST'])
-def view_profile(id):
-    if request.method == 'GET':
-        return render_template('profile.html', user_id=id)
+# Common Edit Profile Route
+@company_bp.route('/edit_profile/<int:id>', methods=['GET', 'POST', 'PUT'])
+@student_bp.route('/edit_profile/<int:id>', methods=['GET', 'POST', 'PUT'])
+def edit_profile(id):
+    if request.method == "GET":
+        return render_template(
+            "student/edit_profile.html",
+            user_id=id
+        )
 
-    if request.method == 'POST':
+    verify_jwt_in_request()
+
+    claims = get_jwt()
+    role = claims.get("role")
+    user_id = int(get_jwt_identity())
+
+    if user_id != id:
+        return jsonify({
+            "error": "Unauthorized access."
+        }), 403
+
+    if request.method == "POST":
+        if role == "student":
+            student = Student.query.get(id)
+            if not student:
+                return jsonify({
+                    "error": "Student not found."
+                }), 404
+
+            return jsonify({
+                "id": student.id,
+                "full_name": student.full_name,
+                "email": student.email,
+                "phone_number": student.phone_number,
+                "roll_number": student.roll_number,
+                "department": student.department,
+                "cgpa": student.cgpa,
+                "resume_path": student.resume_path
+            }), 200
+
+
+        elif role == "company":
+            company = Company.query.get(id)
+            if not company:
+                return jsonify({
+                    "error": "Company not found."
+                }), 404
+
+            return jsonify({
+                "id": company.id,
+                "company_name": company.company_name,
+                "full_name": company.full_name,
+                "email": company.email,
+                "phone_number": company.phone_number,
+                "about_company": company.about_company
+            }), 200
+
+        return jsonify({
+            "error": "Invalid role."
+        }), 403
+
+    if request.method == "PUT":
+        data = request.form
+        if role == "student":
+            student = Student.query.get(id)
+            if not student:
+                return jsonify({
+                    "error": "Student not found."
+                }), 404
+
+            student.full_name = data.get("full_name")
+            student.email = data.get("email")
+            student.phone_number = data.get("phone_number")
+            student.cgpa = float(data.get("cgpa"))
+            resume = request.files.get("resume")
+
+            if resume:
+                filename = secure_filename(
+                    f"student_{student.id}.pdf"
+                )
+
+                upload_folder = os.path.join(
+                    current_app.static_folder,
+                    "uploads",
+                    "resumes"
+                )
+
+                os.makedirs(upload_folder, exist_ok=True)
+                
+                file_path = os.path.join(
+                    upload_folder,
+                    filename
+                )
+
+                # overwrite previous resume
+                resume.save(file_path)
+                student.resume_path = filename
+            db.session.commit()
+
+            return jsonify({
+                "message": "Profile updated successfully."
+            }), 200
+
+
+        elif role == "company":
+            company = Company.query.get(id)
+            if not company:
+                return jsonify({
+                    "error": "Company not found."
+                }), 404
+
+            company.full_name = data.get("full_name")
+            company.email = data.get("email")
+            company.phone_number = data.get("phone_number")
+            company.about_company = data.get("about_company")
+
+            db.session.commit()
+
+            return jsonify({
+                "message": "Profile updated successfully."
+            }), 200
+
+        return jsonify({
+            "error": "Invalid role."
+        }), 403
+    
+#api route for admin to view student profile
+@admin_bp.route('/student_profile/<int:id>', methods=['GET', 'POST'])
+def student_profile(id):
+    if request.method == "GET":
+        return render_template("admin/view_student_profile.html", student_id=id)
+
+    if request.method == "POST":
         verify_jwt_in_request()
         claims = get_jwt()
-        role = claims.get('role')
-        user_id = get_jwt_identity()
 
-        if str(user_id) != str(id):
-            return jsonify({'error': "You are not authorized to view this profile."}), 403
+        if claims.get("role") != "admin":
+            return jsonify({"error": "Unauthorized access."}), 403
 
-        if role == 'company':
-            user = Company.query.get(id)
-            if not user:
-                return jsonify({'error': 'Company not found'}), 404
-            return jsonify({
-                'id': user.id,
-                'company_name': user.company_name,
-                'full_name': user.full_name,
-                'email': user.email,
-                'about_company': user.about_company,
-                'status': user.status,
-                'is_blacklisted': user.is_blacklisted
-            }), 200
+        student = Student.query.get(id)
 
-        elif role == 'student':
-            user = Student.query.get(id)
-            if not user:
-                return jsonify({'error': 'Student not found'}), 404
-            return jsonify({
-                'id': user.id,
-                'full_name': user.full_name,
-                'roll_number': user.roll_number,
-                'department': user.department,
-                'email': user.email,
-                'resume_path': user.resume_path,
-                'is_active': user.is_active
-            }), 200
+        if not student:
+            return jsonify({"error": "Student not found."}), 404
+
+        applications = Application.query.filter_by(student_id=id).order_by(Application.id.asc()).all()
+
+        return jsonify({
+            "id": student.id,
+            "full_name": student.full_name,
+            "email": student.email,
+            "phone_number": student.phone_number,
+            "department": student.department,
+            "roll_number": student.roll_number,
+            "cgpa": student.cgpa,
+            "resume_path": student.resume_path,
+            "applications": [{
+                "application_id": a.id,
+                "company_name": a.placement_drive.company.company_name,
+                "job_title": a.placement_drive.job_title,
+                "status": a.status,
+                "application_date": a.application_date.isoformat() if a.application_date else None
+            } for a in applications]
+        }), 200

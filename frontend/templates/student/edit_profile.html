@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Edit Profile
+{% endblock %}
+
+{% block content %}
+
+    <div id="edit-profile-app" class="container" data-user-id="{{ user_id }}">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 align="center" class="display-5">
+                Edit Profile
+            </h2>
+        </div>
+
+        <hr>
+
+        <div v-if="successMessage" class="alert alert-success">
+            [[ successMessage ]]
+        </div>
+
+        <div v-if="errorMessage" class="alert alert-danger">
+            [[ errorMessage ]]
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <p class="lead">
+                Below are your current profile details. You may edit the required fields.
+            </p>
+        </div>
+
+        <table name="profile" class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th v-if="role == 'company'" scope="col"> Company Name </th>
+                    <th scope="col">Full Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Phone Number</th>
+                    <th v-if="role == 'student'" scope="col"> Roll Number </th>
+                    <th v-if="role == 'student'" scope="col"> Department </th>
+                    <th v-if="role == 'student'" scope="col"> CGPA </th>
+                    <th v-if="role == 'student'" scope="col"> Resume </th>
+                    <th v-if="role == 'company'" scope="col"> About Company </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>[[ profile.id ]]</td>
+                    <td v-if="role == 'company'"> [[ profile.company_name ]] </td>
+                    <td> [[ profile.full_name ]] </td>
+                    <td> [[ profile.email ]] </td>
+                    <td> [[ profile.phone_number ]] </td>
+                    <td v-if="role == 'student'"> [[ profile.roll_number ]] </td>
+                    <td v-if="role == 'student'"> [[ profile.department ]] </td>
+                    <td v-if="role == 'student'"> [[ profile.cgpa ]] </td>
+                    <td v-if="role == 'student'"> 
+                        <a v-if="profile.resume_path" :href="'/static/uploads/resumes/' + profile.resume_path" target="_blank" class="btn btn-outline-primary">
+                            View Resume
+                        </a>
+                        <span v-else>
+                            No Resume Uploaded
+                        </span>
+                    </td>
+                    <td v-if="role == 'company'">
+                        [[ profile.about_company ]]
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <hr>
+
+        <form @submit.prevent="handleEditProfile">
+
+            <div class="form-group">
+                <label for="name" class="form-label">Name:</label>
+                <input type="text" id="name" v-model="profile.full_name" class="form-control" required>
+            </div>
+
+            <br>
+
+            <div class="form-group">
+                <label for="username" class="form-label">Username (Email):</label>
+                <input type="email" id="username" v-model="profile.email" class="form-control" required>
+            </div>
+
+            <br>
+
+            <div class="form-group">
+                <label for="phone_number">Phone Number:</label>
+                <input type="text" id="phone_number" v-model="profile.phone_number" class="form-control" required>
+            </div>
+
+            <br>
+
+            <div class="form-group" v-if="role=='student'">
+                <label for="cgpa">CGPA:</label>
+                <input type="number" step="0.01" min="0" max="10" id="cgpa" v-model="profile.cgpa" class="form-control" required>
+            </div>
+
+            <br>
+
+            <div class="form-group" v-if="role=='student'">
+                <label for="resume">Resume (PDF):</label>
+                <input type="file" id="resume" class="form-control" accept=".pdf" @change="handleResumeUpload">
+            </div>
+
+            <br>
+
+            <div class="form-group" v-if="role=='company'">
+                <label for="about_company">About Company:</label>
+                <textarea id="about_company" v-model="profile.about_company" class="form-control" rows="5"></textarea>
+            </div>
+
+            <br>
+
+            <input type="submit" class="btn btn-primary" value="Edit Profile">
+        </form>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='student/edit_profile.js') }}"></script>
+{% endblock %}

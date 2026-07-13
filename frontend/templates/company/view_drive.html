@@ -64,7 +64,7 @@
 
         <div v-if="isStudent" class="mb-4">
             <div class="d-flex justify-content-between align-items-center mb-4"> 
-                <p class = "lead"><strong>About Company:  </strong>[[ drive.company.about_company ]] </p> 
+                <p class = "lead"><strong>About Company:  </strong>[[ drive.about_company ]] </p> 
             </div>
 
             <hr>
@@ -74,7 +74,7 @@
             </h5>
 
                 <p class="lead"> <strong>Minimum CGPA Required:</strong>
-                    [[ drive.minimum_cgpa ]]
+                    [[ drive.required_cgpa ]]
                 </p>
 
                 <p class="lead"> <strong>Your CGPA:</strong>
@@ -83,12 +83,12 @@
 
                 <div v-if="drive.is_eligible" class="alert alert-success">
                     You are eligible to apply.
-                    (Your CGPA: [[ drive.student_cgpa ]] / Required: [[ drive.minimum_cgpa ]])
+                    (Your CGPA: [[ drive.student_cgpa ]] / Required: [[ drive.required_cgpa ]])
                 </div>
 
                 <div v-else class="alert alert-danger">
                     You are not eligible to apply.
-                    (Your CGPA: [[ drive.student_cgpa ]] / Required: [[ drive.minimum_cgpa ]])
+                    (Your CGPA: [[ drive.student_cgpa ]] / Required: [[ drive.required_cgpa ]])
                 </div>
 
             <hr>

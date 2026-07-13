@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Edit Profile
+{% endblock %}
+
+{% block content %}
+
+    <div id="student-profile-app" class="container" data-student-id="{{ student_id }}">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 align="center" class="display-5">
+                Student Profile
+            </h2>
+        </div>
+
+        <hr>
+
+        <div v-if="successMessage" class="alert alert-success">
+            [[ successMessage ]]
+        </div>
+
+        <div v-if="errorMessage" class="alert alert-danger">
+            [[ errorMessage ]]
+        </div>
+
+        <table name="student" class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Full Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Phone Number</th>
+                    <th scope="col"> Roll Number </th>
+                    <th scope="col"> Department </th>
+                    <th scope="col"> CGPA </th>
+                    <th scope="col"> Resume </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td> [[ student.id ]]</td>
+                    <td> [[ student.full_name ]] </td>
+                    <td> [[ student.email ]] </td>
+                    <td> [[ student.phone_number ]] </td>
+                    <td> [[ student.roll_number ]] </td>
+                    <td> [[ student.department ]] </td>
+                    <td> [[ student.cgpa ]] </td>
+                    <td> 
+                        <a v-if="student.resume_path" :href="'/static/uploads/resumes/' + student.resume_path" target="_blank" class="btn btn-outline-primary">
+                            View Resume
+                        </a>
+                        <span v-else>
+                            No Resume Uploaded
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>  
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='admin/view_student_profile.js') }}"></script>
+{% endblock %}

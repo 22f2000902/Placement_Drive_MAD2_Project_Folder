@@ -113,7 +113,7 @@
                 <td> 
                     <a :href="'/api/admin/change_student_status/' + student.id" class="btn btn-primary btn-sm me-1"> Change Status </a>
                     <a :href="'/api/admin/students/' + student.id + '/applications'" class="btn btn-outline-primary btn-sm me-1"> View Applications </a>   
-                    <a :href="'/api/admin/students/' + student.id + '/profile'" class="btn btn-outline-secondary btn-sm"> View Profile </a>
+                    <a :href="'/api/admin/student_profile/' + student.id" class="btn btn-outline-secondary btn-sm"> View Profile </a>
                 </td> 
             </tr>
             <tr v-if="students.length === 0">

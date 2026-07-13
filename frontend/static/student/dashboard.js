@@ -8,7 +8,8 @@ createApp({
             ongoing_drives: [],
             upcoming_drives: [],
             applications: [],
-            interviews: []
+            interviews: [],
+            user_id: null
         }
     }, 
 
@@ -41,6 +42,7 @@ createApp({
                 this.upcoming_drives = data.upcoming_drives || [];
                 this.applications = data.applications || [];
                 this.interviews = data.interviews || [];
+                this.user_id = data.user_id || null;
             } catch (error) {
                 console.error('Error loading student dashboard data:', error);
             }
