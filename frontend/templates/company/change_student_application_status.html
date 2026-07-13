@@ -41,7 +41,14 @@
                                 <td>[[ application.id ]]</td>
                                 <td>[[ application.student.full_name ]]</td>
                                 <td>[[ application.student.department ]]</td>
-                                <td>[[ application.student.resume_path ]]</td>
+                                <td>
+                                    <a v-if="application.student.resume_path" :href="'/static/uploads/resumes/' + application.student.resume_path" target="_blank" class="btn btn-outline-primary">
+                                        View Resume
+                                    </a>
+                                    <span v-else>
+                                        No Resume Uploaded
+                                    </span>
+                                </td>
                                 <td>
                                     <select class="form-select" v-model="application.new_status">
                                     <option disabled value="">
@@ -51,13 +58,13 @@
                                         [[ status ]]
                                     </option>
                                     </select>
-                                    <button class="btn btn-primary btn-sm mt-2" @click="changeStatus(application)">
+                                    <button class="btn btn-primary me-1 mt-2" @click="changeStatus(application)">
                                         Update
                                     </button>
 
                                     <a v-if="application.status.toLowerCase() === 'shortlisted'" 
                                         :href="'/api/company/schedule_interview/' + application.id" 
-                                        class="btn btn-success btn-sm"> Schedule Interview </a>
+                                        class="btn btn-success me-1 mt-2"> Schedule Interview </a>
                                 </td>
                             </tr>
                         </tbody>

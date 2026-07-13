@@ -73,8 +73,8 @@
                 <td> [[ company.company_name ]] </td>
                 <td> [[ company.status ]] </td>
                 <td> 
-                    <a :href="'/api/admin/view_company_drives/' + company.id" class="btn btn-outline-primary me-1"> View Drives </a>
-                    <a :href="'/api/admin/change_company_status/' + company.id" class="btn btn-primary"> Change Status </a>   
+                    <a :href="'/api/admin/view_company_drives/' + company.id" class="btn btn-outline-dark me-1"> View Drives </a>
+                    <a :href="'/api/admin/change_company_status/' + company.id" class="btn btn-outline-success"> Change Status </a>   
                 </td> 
             </tr>
             <tr v-if="activeCompanies.length === 0">
@@ -111,9 +111,9 @@
                         [[ student.is_active ]] 
                 </td>
                 <td> 
-                    <a :href="'/api/admin/change_student_status/' + student.id" class="btn btn-primary btn-sm me-1"> Change Status </a>
-                    <a :href="'/api/admin/students/' + student.id + '/applications'" class="btn btn-outline-primary btn-sm me-1"> View Applications </a>   
-                    <a :href="'/api/admin/student_profile/' + student.id" class="btn btn-outline-secondary btn-sm"> View Profile </a>
+                    <a :href="'/api/admin/change_student_status/' + student.id" class="btn btn-outline-dark me-1"> Change Status </a>
+                    <a :href="'/api/admin/student_applications/' + student.id" class="btn btn-outline-success me-1"> View Applications </a>   
+                    <a :href="'/api/admin/student_profile/' + student.id" class="btn btn-outline-secondary"> View Profile </a>
                 </td> 
             </tr>
             <tr v-if="students.length === 0">
@@ -150,8 +150,8 @@
                 <td> [[ placement.job_title ]] </td>
                 <td> [[ placement.status ]] </td>
                 <td> 
-                    <a :href="'/api/admin/view_drive/' + placement.id" class="btn btn-outline-primary btn-sm me-1"> View Applications </a>
-                    <a :href="'/api/admin/change_placement_drive_status/' + placement.id" class="btn btn-primary btn-sm"> Change Status </a>   
+                    <a :href="'/api/admin/view_drive/' + placement.id" class="btn btn-outline-dark me-1"> View Applications </a>
+                    <a :href="'/api/admin/change_placement_drive_status/' + placement.id" class="btn btn-outline-success"> Change Status </a>   
                 </td> 
             </tr>
             <tr v-if="placements.length === 0">

@@ -115,8 +115,10 @@
                             <td> [[ drive.salary_range ]] </td>
                             <td> [[ drive.status ]] </td>
                             <td> 
-                                <a :href="canApply ? '/api/student/apply_to_drive/' + drive.id : '#'" class="btn btn-primary" 
-                                :class="{ disabled: !canApply }" @click.prevent="!canApply"> Apply </a>
+                                <a v-if="canApply" :href="'/api/student/apply_to_drive/' + drive.id" class="btn btn-primary">
+                                    Apply </a>
+
+                                    <button v-else class="btn btn-secondary" disabled> Apply </button>
 
                                     <p v-if="applicationMessage" class="text-danger mt-3">
                                         [[ applicationMessage ]]

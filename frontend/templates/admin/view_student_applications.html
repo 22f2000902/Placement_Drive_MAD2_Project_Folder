@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Application List Dashboard - PDMS
+{% endblock %}
+
+{% block content %}
+<div id="student-applications-app" class="container mt-4" data-student-id="{{ student_id }}"> 
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 align="center" class="display-5"> <p class="text-primary-emphasis"> Application List Dashboard </p></h2> 
+    </div>
+
+    <table name="placement" class="table table-bordered table-hover mb-5"> 
+        <thead class="table-dark"> 
+            <tr> 
+                <th scope="col"> ID </th>
+                <th scope="col"> Student Name </th>
+                <th scope="col"> Job Title </th>
+                <th scope="col"> Drive Start Date </th>
+                <th scope="col"> Status </th>
+            </tr>
+        </thead> 
+        <tbody> 
+            <tr v-for="application in applications" :key="application.id"> 
+                <td> [[ application.id ]] </td>
+                <td> [[ application.student_name ]] </td>
+                <td> [[ application.job_title ]] </td>
+                <td> [[ application.drive_date ]] </td>
+                <td> [[ application.status ]] </td>
+            </tr> 
+        </tbody> 
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='admin/admin_student_application.js') }}"></script>
+{% endblock %}

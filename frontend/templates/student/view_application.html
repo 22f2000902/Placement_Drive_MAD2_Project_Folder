@@ -37,7 +37,7 @@
                     <td> [[ application.placement_drive.job_title ]] </td>
                     <td> [[ application.student.department ]] </td>
                     <td>
-                        <a v-if="application.student.resume_path" :href="'/static/uploads/resumes/' + application.student.resume_path" target="_blank" class="btn btn-outline-info">
+                        <a v-if="application.resume_path" :href="'/static/uploads/resumes/' + application.resume_path" target="_blank" class="btn btn-outline-primary">
                             View Resume
                         </a>
                     <span v-else>

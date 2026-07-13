@@ -79,8 +79,8 @@
                 <td> [[ placement.status ]] </td>
                 <td> 
                     <a :href="'/api/company/view_drive/' + placement.id" class="btn btn-outline-dark me-1"> View Drive </a> 
-                    <a :href="'/api/company/view_student_applications/' + placement.id" class="btn btn-outline-primary me-1"> View Applications </a>
-                    <a :href="'/api/company/change_placement_drive_status/' + placement.id" class="btn btn-primary"> Change Status </a>   
+                    <a :href="'/api/company/view_student_applications/' + placement.id" class="btn btn-outline-success me-1"> View Applications </a>
+                    <a :href="'/api/company/change_placement_drive_status/' + placement.id" class="btn btn-outline-secondary"> Change Status </a>   
                 </td> 
             </tr>
             <tr v-if="activePlacements.length === 0">

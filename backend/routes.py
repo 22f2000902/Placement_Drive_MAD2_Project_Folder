@@ -165,15 +165,14 @@ def admin_companies():
 
     # API data route
     if request.method == 'POST':
-
         verify_jwt_in_request()
-
         claims = get_jwt()
 
         if claims.get('role') != 'admin':
             return jsonify({'error': "Unauthorized access"}), 403
 
         companies = Company.query.order_by(Company.id.asc()).all()
+        number_of_drives = len(companies)
 
         return jsonify({
             'companies': [
@@ -183,7 +182,8 @@ def admin_companies():
                     'full_name': c.full_name,
                     'email': c.email,
                     'status': c.status,
-                    'is_blacklisted': c.is_blacklisted
+                    'is_blacklisted': c.is_blacklisted,
+                    'number_of_drives': number_of_drives
                 }
                 for c in companies
             ]
@@ -472,7 +472,6 @@ def placement_drives_list():
     
     if request.method == 'POST':
         verify_jwt_in_request()
-
         claims = get_jwt()
 
         if claims.get('role') not in ['admin', 'company']:
@@ -492,6 +491,31 @@ def placement_drives_list():
                     'is_approved': p.is_approved
                 } for p in placements
             ]
+        }), 200
+
+#api for student applications 
+@admin_bp.route('/student_applications/<int:student_id>', methods=["GET", "POST"])
+def student_applications(student_id):
+    if request.method == "GET":
+        return render_template("admin/view_student_applications.html", student_id = student_id)
+
+    if request.method == "POST":
+        verify_jwt_in_request()
+        claims = get_jwt()
+
+        if claims.get('role') not in ['admin']:
+            return jsonify({'error': "Unauthorized access"}), 403
+        
+        student_applications = Application.query.filter_by(student_id=student_id).order_by(Application.id.asc()).all()
+
+        return jsonify({
+            'applications': [{
+                'id': (a.id),
+                'student_name': a.student.full_name,
+                'job_title': a.placement_drive.job_title,
+                'drive_date': a.placement_drive.drive_date.isoformat() if a.placement_drive.drive_date else None,
+                'status': a.status
+            } for a in student_applications]
         }), 200
 
 #company dashboard api route
@@ -1070,7 +1094,8 @@ def view_application(application_id):
                 'id': application.student.id,
                 'full_name': application.student.full_name,
                 'department': application.student.department,
-                'roll_number': application.student.roll_number
+                'roll_number': application.student.roll_number,
+                'resume': application.student.resume_path
             },
             'placement_drive': {
                 'id': drive.id,
