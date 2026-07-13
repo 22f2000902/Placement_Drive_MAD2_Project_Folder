@@ -4,3 +4,4 @@ instance
 /instance
 .env
 frontend/static/uploads/resumes
+frontend/static/exports

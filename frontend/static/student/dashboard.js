@@ -9,7 +9,10 @@ createApp({
             upcoming_drives: [],
             applications: [],
             interviews: [],
-            user_id: null
+            user_id: null,
+            exportMessage: '',
+            downloadLink: '',
+            exportTaskId: null,
         }
     }, 
 
@@ -47,6 +50,54 @@ createApp({
                 console.error('Error loading student dashboard data:', error);
             }
         }, 
+
+        async exportCSV() {
+            try {
+                const response = await fetch(
+                    '/api/student/export_csv',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${this.token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error);
+                }
+
+                this.exportMessage = data.message;
+                this.exportTaskId = data.task_id;
+
+                this.checkExportStatus();
+
+            } catch (error) {
+                console.error(error);
+                this.exportMessage = error.message;
+            }
+        },
+
+        async checkExportStatus() {
+            const interval = setInterval(async () => {
+                const response = await fetch(
+                    `/api/student/export_status/${this.exportTaskId}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${this.token}`
+                        }
+                    }
+                );
+                const data = await response.json();
+                if (data.completed) {
+                    clearInterval(interval);
+                    this.exportMessage = "CSV export completed successfully!";
+                    this.downloadLink = `/static/exports/${data.filename}`;
+                }
+            }, 2000);
+        },
 
         handleLogout() {
             localStorage.clear();

@@ -8,6 +8,7 @@ from flask_jwt_extended import verify_jwt_in_request
 import os
 from werkzeug.utils import secure_filename
 from flask import current_app
+from celery.result import AsyncResult
 
 auth_bp = Blueprint('auth_bp', __name__)
 admin_bp = Blueprint('admin_bp', __name__)
@@ -1280,7 +1281,6 @@ def student_profile(id):
         }), 200
     
 #common search api for students and admin    
-#common search route
 @auth_bp.route('/search', methods=['GET', 'POST'])
 def search():
     if request.method == "GET":
@@ -1374,3 +1374,58 @@ def search():
             "job_title": a.placement_drive.job_title,
             "status": a.status
         } for a in applications]}), 200
+
+@student_bp.route("/export_csv", methods=["POST"])
+def export_csv():
+    verify_jwt_in_request()
+    claims = get_jwt()
+
+    from task import export_student_applications
+
+    if claims.get("role") != "student":
+        return jsonify({
+            "error": "Unauthorized access"
+        }), 403
+
+    student_id = int(get_jwt_identity())
+    task = export_student_applications.delay(student_id)
+    print(task.id)
+
+    return jsonify({
+        "message": "Export started.",
+        "task_id": task.id
+    }), 202
+
+@student_bp.route("/export_status/<task_id>", methods=["GET"])
+def export_status(task_id):
+    verify_jwt_in_request()
+    from app import celery
+
+    result = celery.AsyncResult(task_id)
+
+    if result.ready():
+        return jsonify({
+            "completed": True,
+            "filename": result.result["filename"]
+        })
+
+    return jsonify({
+        "completed": False
+    })
+
+@student_bp.route("/test_mail")
+def test_mail():
+
+    from flask_mail import Message
+    from backend.mail_config import mail
+
+    msg = Message(
+        subject="PDMS Test Email",
+        recipients=["22f2000902@ds.study.iitm.ac.in"]
+    )
+
+    msg.body = "Congratulations! Flask-Mail is working."
+
+    mail.send(msg)
+
+    return "Mail Sent!"

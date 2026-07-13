@@ -7,6 +7,8 @@ from flask_cors import CORS
 from werkzeug.security import generate_password_hash
 from datetime import datetime
 from backend.routes import auth_bp, student_bp, company_bp, admin_bp
+from backend.celery_config import make_celery
+from backend.mail_config import mail
 
 jwt = JWTManager()
 
@@ -31,6 +33,9 @@ def createApp():
     return app 
 
 app = createApp()
+mail.init_app(app)
+celery = make_celery(app)
+import task
 
 with app.app_context(): 
     #db.drop_all()
