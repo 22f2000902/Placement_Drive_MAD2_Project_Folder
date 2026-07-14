@@ -60,8 +60,11 @@ def export_student_applications(student_id):
 
 @celery.task
 def daily_reminder():
-    tomorrow = date.today() + timedelta(days=1)
+    today = date.today()
+    tomorrow = today + timedelta(days=1)
+
     drives = PlacementDrive.query.filter(
+        PlacementDrive.drive_end_date >= today,
         PlacementDrive.drive_end_date <= tomorrow,
         PlacementDrive.status == "active",
         PlacementDrive.is_approved == True
@@ -94,7 +97,9 @@ def daily_reminder():
             mail.send(msg)
     
     interviews = Interview.query.filter(
-        Interview.interview_date <= tomorrow).all()
+        Interview.interview_date >= today,
+        Interview.interview_date <= tomorrow
+    ).all()
 
     for interview in interviews:
         application = interview.application
@@ -109,16 +114,11 @@ def daily_reminder():
             Hello {student.full_name},
             This is a reminder that you have an interview.
 
-            Company:
-            {application.placement_drive.company.company_name}
-            Role:
-            {application.placement_drive.job_title}
-            Date:
-            {interview.interview_date}
-            Time:
-            {interview.interview_time}
-            Mode:
-            {interview.interview_mode}
+            Company: {application.placement_drive.company.company_name}
+            Role: {application.placement_drive.job_title}
+            Date: {interview.interview_date}
+            Time: {interview.interview_time}
+            Mode: {interview.interview_mode}
 
             Best of luck!
             PDMS
@@ -220,7 +220,5 @@ def monthly_report():
         subject="Monthly Placement Activity Report",
         recipients=[admin.email]
     )
-
     msg.html = html
-
     mail.send(msg)

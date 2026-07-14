@@ -40,13 +40,13 @@ celery = make_celery(app)
 import task
 
 with app.app_context(): 
-    #db.drop_all()
+    db.drop_all()
     db.create_all()
 
     admin = Admin.query.first()
     if not admin: 
         password_hash = generate_password_hash('admin123')
-        admin = Admin(email='diya.gup2310@gmail.com', name='admin', password_hash=password_hash)
+        admin = Admin(email='admin@gmail.com', name='admin', password_hash=password_hash)
         db.session.add(admin)
         db.session.commit()
 

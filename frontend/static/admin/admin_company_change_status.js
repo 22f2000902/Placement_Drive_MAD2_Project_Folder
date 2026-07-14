@@ -10,7 +10,8 @@ createApp({
             company: {},
             selectedStatus: null,
             successMessage: null,
-            errorMessage: null
+            errorMessage: null,
+            number_of_placement_drives: null
 
         }
     },
@@ -27,6 +28,7 @@ createApp({
 
         const root = document.getElementById('change-company-status');
 
+        this.number_of_placement_drives = root.dataset.numberOfPlacementDrives || 0;
         this.company = {
             id: root.dataset.companyId,
             company_name: root.dataset.companyName,

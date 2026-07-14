@@ -65,7 +65,6 @@ class Application(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey(Student.id), nullable=False)
     placement_drive_id = db.Column(db.Integer, db.ForeignKey(PlacementDrive.id), nullable=False)
-    application_date = db.Column(db.Date, nullable=False)
     status = db.Column(db.String(50), nullable=False, default='Submitted')
     application_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow) 
     updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)

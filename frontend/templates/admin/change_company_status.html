@@ -9,7 +9,7 @@
 
 {% block content %}
     <div id = "change-company-status" data-company-id="{{ company_id }}" data-company-name="{{ company_name }}"
-        data-company-status="{{ company_status }}" data-full-name="{{ full_name }}" data-about-company="{{ about_company }}" 
+        data-company-status="{{ company_status }}" data-full-name="{{ full_name }}" data-about-company="{{ about_company }}" data-number-of-placement-drives="{{ number_of_placement_drives }}"
         class = "container mt-4"> 
 
         <div v-if="successMessage" class="alert alert-success">
@@ -41,7 +41,7 @@
                     <td> [[ company.full_name ]] </td>
                     <td> [[ company.company_name ]] </td>
                     <td> [[ company.about_company ]] </td>
-                    <td> [[ number_of_drives ]] </td>
+                    <td> [[ number_of_placement_drives ]] </td>
                     <td> [[ company.status ]] </td>
                     <td> 
                         <button @click="changeStatus" class="btn btn-danger"> Change Status </button>

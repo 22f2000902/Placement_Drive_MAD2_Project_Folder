@@ -174,7 +174,7 @@ def admin_companies():
             return jsonify({'error': "Unauthorized access"}), 403
 
         companies = Company.query.order_by(Company.id.asc()).all()
-        number_of_drives = len(companies)
+        number_of_drives = PlacementDrive.query.filter_by(company_id=Company.id).count()
 
         return jsonify({
             'companies': [
@@ -223,6 +223,7 @@ def admin_students():
 def change_company_status(company_id):
     if request.method == "GET":
         company = Company.query.get(company_id)
+        number_of_drives = PlacementDrive.query.filter_by(company_id=company.id).count()
 
         return render_template(
             'admin/change_company_status.html',
@@ -230,7 +231,8 @@ def change_company_status(company_id):
             company_name=company.company_name,
             company_status=company.status,
             full_name=company.full_name,
-            about_company=company.about_company
+            about_company=company.about_company,
+            number_of_placement_drives = number_of_drives
         )
     if request.method == "POST":
         verify_jwt_in_request()
@@ -255,13 +257,10 @@ def change_company_status(company_id):
         company.status = new_status
         db.session.commit()
 
-        number_of_drives = PlacementDrive.query.filter_by(company_id=company.id).count()
-
         return jsonify({
             'message': f'Company status successfully updated to {new_status}!',
             'company_id': company.id,
-            'current_status': company.status,
-            'number_of_placement_drives': number_of_drives
+            'current_status': company.status
         }), 200   
 
 @admin_bp.route('/change_student_status/<int:student_id>', methods=['GET', 'POST'])
